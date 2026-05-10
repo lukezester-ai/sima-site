@@ -1281,7 +1281,12 @@ const server = createServer(async (req, res) => {
 });
 
 server.on("error", async (error) => {
-  await appendFile(join(root, "server-error.log"), `${new Date().toISOString()} ${error.stack}\n`);
+  console.error("SIMA server listen error:", error.message || error);
+  try {
+    await appendFile(join(root, "server-error.log"), `${new Date().toISOString()} ${error.stack}\n`);
+  } catch {
+    /* ignore log write failure */
+  }
   process.exit(1);
 });
 
