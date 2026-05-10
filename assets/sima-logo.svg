@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 72" role="img" aria-labelledby="logo-title">
+  <title id="logo-title">SIMA</title>
+  <defs>
+    <linearGradient id="simaLogoLeaf" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7abe8f" />
+      <stop offset="100%" stop-color="#176b4d" />
+    </linearGradient>
+  </defs>
+  <g transform="translate(4,10) scale(0.085)">
+    <path
+      fill="url(#simaLogoLeaf)"
+      d="M268 118c78 8 142 58 176 130 34 72 28 154-18 218-46 64-124 98-206 92V118h48zm-40 312v-262c-72 18-124 76-136 148-12 72 22 144 82 182 18 11 38 19 54 22v-90z"
+    />
+    <path
+      fill="#c8e8b8"
+      fill-opacity="0.92"
+      d="M228 158v216c48-18 86-52 108-96 22-44 24-94 8-138-14-40-44-70-80-82l-36 100z"
+    />
+  </g>
+  <text
+    x="56"
+    y="49"
+    fill="#b91c2c"
+    font-family="Arial Black, Helvetica Neue, Arial, sans-serif"
+    font-size="34"
+    font-weight="900"
+    letter-spacing="0.07em"
+  >SIMA</text>
+</svg>

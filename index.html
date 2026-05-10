@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="bg">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SIMA | AI решения за модерно земеделие</title>
+    <meta
+      name="description"
+      content="SIMA внедрява AI технологии в земеделието: наблюдение на полета, анализи, автоматизация и управление на стопанства."
+    />
+    <meta name="theme-color" content="#063d2a" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="/assets/sima-logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo+Black&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand brand-lockup brand-lockup--header" href="#top" data-i18n-aria="brand_aria">
+        <img class="brand-lockup__mark" src="assets/sima-mark.svg" alt="" width="44" height="48" decoding="async" />
+        <span class="brand-wordmark brand-wordmark--header">SIMA</span>
+      </a>
+      <nav class="main-nav" data-i18n-aria="nav_aria">
+        <a href="#solutions" data-i18n="nav_solutions">Решения</a>
+        <a href="#modules" data-i18n="nav_modules">Модули</a>
+        <a href="#field-watch" data-i18n="nav_fw">Field Watch</a>
+        <a href="#portal" data-i18n="nav_portal">Портал</a>
+        <details class="nav-more">
+          <summary data-i18n="nav_more">Още</summary>
+          <div class="nav-more-panel">
+            <a href="#contact" data-i18n="nav_contact">Контакт</a>
+            <a href="#advisor" data-i18n="nav_advisor">AI въпросник</a>
+            <a href="#process" data-i18n="nav_process">Подход</a>
+            <a href="#scale" data-i18n="nav_scale">За кого</a>
+            <a href="#privacy" data-i18n="nav_privacy">Поверителност</a>
+            <a href="#terms" data-i18n="nav_terms">Условия</a>
+          </div>
+        </details>
+      </nav>
+      <div class="header-actions">
+        <div class="lang-switch" role="group" data-i18n-aria="lang_aria">
+          <button type="button" class="lang-btn" data-lang="bg" aria-pressed="true" data-i18n="lang_bg">БГ</button>
+          <button type="button" class="lang-btn" data-lang="en" aria-pressed="false" data-i18n="lang_en">EN</button>
+        </div>
+        <a class="nav-cta" href="#contact" data-i18n="nav_cta">Консултация</a>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-content">
+          <p class="eyebrow" data-i18n="hero_eyebrow">AI технологии за земеделие с ясен резултат</p>
+          <h1 data-i18n="hero_h1">Свобода, спокойствие и сигурност за всяко стопанство.</h1>
+          <p class="hero-copy" data-i18n="hero_copy">
+            SIMA помага на фермери и агрокомпании да разбират по-добре
+            полетата, ресурсите и риска. От наблюдение на посевите до пълно
+            управление на стопанството, изграждаме решения около реалния проблем,
+            а не около готов шаблон.
+          </p>
+          <p class="hero-credit" data-i18n="hero_credit_html" data-i18n-html="1"></p>
+          <div class="hero-actions">
+            <a class="button primary" href="#contact" data-i18n="hero_btn1">Започнете разговор</a>
+            <a class="button secondary" href="#solutions" data-i18n="hero_btn2">Вижте възможностите</a>
+          </div>
+        </div>
+
+        <div class="hero-visual" data-i18n-aria="hero_visual_aria">
+          <div class="field-map">
+            <span class="scan scan-one"></span>
+            <span class="scan scan-two"></span>
+            <span class="node node-one"></span>
+            <span class="node node-two"></span>
+            <span class="node node-three"></span>
+          </div>
+          <div class="insight-panel">
+            <div>
+              <span data-i18n="insight_growth">Индекс на растеж</span>
+              <strong>87%</strong>
+            </div>
+            <div>
+              <span data-i18n="insight_stress">Риск от стрес</span>
+              <strong data-i18n="insight_low">нисък</strong>
+            </div>
+            <div>
+              <span data-i18n="insight_rec">Препоръка</span>
+              <strong data-i18n="insight_water">поливане след 18:00</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="logo-strip" data-i18n-aria="logo_strip_aria">
+        <span class="brand-lockup brand-lockup--strip">
+          <img class="brand-lockup__mark" src="assets/sima-mark.svg" alt="" width="88" height="94" decoding="async" />
+          <span class="brand-wordmark brand-wordmark--strip">SIMA</span>
+        </span>
+      </section>
+
+      <section id="solutions" class="section solutions">
+        <div class="section-heading">
+          <p class="eyebrow" data-i18n="sol_eyebrow">От наблюдение до управление</p>
+          <h2 data-i18n="sol_h2">AI там, където стопанството губи време, ресурс или сигурност.</h2>
+        </div>
+        <div class="solution-grid">
+          <article>
+            <span class="brand-lockup brand-lockup--card" aria-hidden="true">
+              <img class="brand-lockup__mark" src="assets/sima-mark.svg" alt="" width="28" height="30" decoding="async" />
+              <span class="brand-wordmark brand-wordmark--card">SIMA</span>
+            </span>
+            <h3 data-i18n="sol1_h">Наблюдение на полетата</h3>
+            <p data-i18n="sol1_p">
+              Сателитни данни, дронове и сензори превръщат полето в жива карта:
+              растеж, влага, болести, вредители и зони с риск.
+            </p>
+          </article>
+          <article>
+            <span class="brand-lockup brand-lockup--card" aria-hidden="true">
+              <img class="brand-lockup__mark" src="assets/sima-mark.svg" alt="" width="28" height="30" decoding="async" />
+              <span class="brand-wordmark brand-wordmark--card">SIMA</span>
+            </span>
+            <h3 data-i18n="sol2_h">Прогнози и ранни сигнали</h3>
+            <p data-i18n="sol2_p">
+              AI открива модели преди проблемът да стане скъп: засушаване,
+              хранителен дефицит, болести, закъснение в операции или загуби.
+            </p>
+          </article>
+          <article>
+            <span class="brand-lockup brand-lockup--card" aria-hidden="true">
+              <img class="brand-lockup__mark" src="assets/sima-mark.svg" alt="" width="28" height="30" decoding="async" />
+              <span class="brand-wordmark brand-wordmark--card">SIMA</span>
+            </span>
+            <h3 data-i18n="sol3_h">Оптимизация на ресурсите</h3>
+            <p data-i18n="sol3_p">
+              Поливане, торене, препарати, гориво и работно време се планират
+              по-точно, с по-малко излишни разходи и по-добър контрол.
+            </p>
+          </article>
+          <article>
+            <span class="brand-lockup brand-lockup--card" aria-hidden="true">
+              <img class="brand-lockup__mark" src="assets/sima-mark.svg" alt="" width="28" height="30" decoding="async" />
+              <span class="brand-wordmark brand-wordmark--card">SIMA</span>
+            </span>
+            <h3 data-i18n="sol4_h">Управление на стопанство</h3>
+            <p data-i18n="sol4_p">
+              Единна система за задачи, техника, хора, склад, разходи и отчети,
+              която дава спокойна картина на ежедневието и сезона.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="modules" class="section modules">
+        <div class="section-heading">
+          <p class="eyebrow" data-i18n="mod_eyebrow">AI модулите на SIMA</p>
+          <h2 data-i18n="mod_h2">Започвате с един ясен проблем и надграждате до цялостна система.</h2>
+        </div>
+        <div class="module-grid">
+          <article>
+            <span>Field Watch</span>
+            <h3 data-i18n="mod1_h">Наблюдение на полета</h3>
+            <p data-i18n="mod1_p">Карта на посевите, сателитни индекси, зони с риск и ранни сигнали за промяна.</p>
+          </article>
+          <article>
+            <span>Risk Radar</span>
+            <h3 data-i18n="mod2_h">Болести, климат и стрес</h3>
+            <p data-i18n="mod2_p">Оценка на риск според време, почва, култура и история на полето.</p>
+          </article>
+          <article>
+            <span>Water & Soil AI</span>
+            <h3 data-i18n="mod3_h">Вода, почва и торене</h3>
+            <p data-i18n="mod3_p">Препоръки за поливане, хранене и ресурс там, където ефектът е най-голям.</p>
+          </article>
+          <article>
+            <span>Yield Insight</span>
+            <h3 data-i18n="mod4_h">Прогноза за добив</h3>
+            <p data-i18n="mod4_p">По-ясна картина за очакван резултат, отклонения и решения преди края на сезона.</p>
+          </article>
+          <article>
+            <span>FarmOps</span>
+            <h3 data-i18n="mod5_h">Операции и техника</h3>
+            <p data-i18n="mod5_p">Задачи, хора, машини, склад и разходи в една управленска картина.</p>
+          </article>
+          <article>
+            <span>SIMA Copilot</span>
+            <h3 data-i18n="mod6_h">AI асистент за решения</h3>
+            <p data-i18n="mod6_p">Интелигентен помощник, който обяснява данните и предлага следваща практична стъпка.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="field-watch" class="section field-watch">
+        <div class="section-heading">
+          <p class="eyebrow" data-i18n="fw_eyebrow">Field Watch прототип</p>
+          <h2 data-i18n="fw_h2">От данни за полето до първа стратегия за действие.</h2>
+          <p data-i18n="fw_intro">
+            Тази демо версия показва как ще работи модулът: фермерът описва
+            полето, добавя наличните данни и получава структурирана първа
+            стратегия. В реална система анализът ще се свърже с избран LLM модел,
+            сателитни индекси и проверка от екипа на SIMA.
+          </p>
+        </div>
+
+        <div class="field-watch-layout">
+          <form class="field-watch-form" id="field-watch-form">
+            <label>
+              <span data-i18n="fw_field">Име на поле / парцел</span>
+              <input type="text" name="fieldName" data-i18n-placeholder="fw_field_ph" placeholder="Например: Блок 12 - Север" />
+            </label>
+
+            <label>
+              <span data-i18n="fw_area">Площ</span>
+              <input type="text" name="area" data-i18n-placeholder="fw_area_ph" placeholder="Например: 84 дка" />
+            </label>
+
+            <label>
+              <span data-i18n="fw_crop">Култура</span>
+              <select name="crop">
+                <option value="wheat" data-i18n="crop_wheat">Пшеница</option>
+                <option value="corn" data-i18n="crop_corn">Царевица</option>
+                <option value="sunflower" data-i18n="crop_sun">Слънчоглед</option>
+                <option value="orchard" data-i18n="crop_orchard">Овощна градина</option>
+                <option value="vegetables" data-i18n="crop_veg">Зеленчуци</option>
+              </select>
+            </label>
+
+            <label>
+              <span data-i18n="fw_concern">Основно притеснение</span>
+              <select name="concern">
+                <option value="weak-growth" data-i18n="concern_wg">Слаб или неравномерен растеж</option>
+                <option value="water-stress" data-i18n="concern_ws">Съмнение за воден стрес</option>
+                <option value="disease" data-i18n="concern_dis">Съмнение за болест или вредители</option>
+                <option value="nutrition" data-i18n="concern_nut">Съмнение за хранителен дефицит</option>
+                <option value="unknown" data-i18n="concern_unk">Не знам откъде идва проблемът</option>
+              </select>
+            </label>
+
+            <label>
+              <span data-i18n="fw_stage">Етап на сезона</span>
+              <select name="stage">
+                <option value="early" data-i18n="stage_early">Начален растеж</option>
+                <option value="active" data-i18n="stage_active">Активна вегетация</option>
+                <option value="flowering" data-i18n="stage_flow">Цъфтеж / критичен период</option>
+                <option value="late" data-i18n="stage_late">Късен сезон</option>
+              </select>
+            </label>
+
+            <label>
+              <span data-i18n="fw_files">Налични данни</span>
+              <input type="file" name="fieldData" multiple accept="image/*,.pdf,.csv,.xlsx,.kml,.kmz" />
+              <span data-i18n="fw_files_hint">Снимки, дрон кадри, граници на парцели, таблици или бележки.</span>
+            </label>
+
+            <label>
+              <span data-i18n="fw_notes">Кратко описание от фермера</span>
+              <textarea name="notes" rows="5" data-i18n-placeholder="fw_notes_ph" placeholder="Например: в северната част има пожълтяване, растежът изостава, последното поливане беше преди 8 дни..."></textarea>
+            </label>
+
+            <button type="submit" data-i18n="fw_submit">Изготви примерна стратегия</button>
+          </form>
+
+          <div class="field-watch-results">
+            <aside class="strategy-card" aria-live="polite">
+              <span data-i18n="fw_card_tag">SIMA Field Watch</span>
+              <h3 id="strategy-title" data-i18n="fw_strategy_title">Първа полева диагностика</h3>
+              <div id="strategy-output">
+                <p data-i18n="fw_strategy_placeholder">
+                  Попълнете данните вляво и модулът ще покаже примерна стратегия:
+                  какво да се провери, кои действия са приоритетни и какво да се
+                  наблюдава през следващите дни.
+                </p>
+              </div>
+            </aside>
+
+            <aside class="field-history">
+              <div class="history-heading">
+                <div>
+                  <p class="eyebrow" data-i18n="fw_hist_eyebrow">История на полетата</p>
+                  <h3 data-i18n="fw_hist_h">Последни доклади</h3>
+                </div>
+                <button type="button" id="clear-history" data-i18n="fw_clear">Изчисти</button>
+              </div>
+              <div class="history-list" id="history-list">
+                <p class="empty-history" data-i18n="fw_empty_hist">
+                  Все още няма запазени доклади. Създайте първи Field Watch анализ.
+                </p>
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        <div class="report-preview" id="report-preview" hidden>
+          <div class="report-toolbar">
+            <div>
+              <p class="eyebrow" data-i18n="fw_rep_eyebrow">Field Watch доклад</p>
+              <h3 id="report-title" data-i18n="fw_rep_h">Доклад за поле</h3>
+            </div>
+            <div class="report-actions">
+              <button type="button" id="copy-report" data-i18n="fw_copy">Копирай доклада</button>
+              <button type="button" id="print-report" data-i18n="fw_print">PDF / Печат</button>
+            </div>
+          </div>
+          <div class="report-grid">
+            <article>
+              <span>01</span>
+              <h4 data-i18n="fw_art_state">Състояние</h4>
+              <p id="report-state"></p>
+            </article>
+            <article>
+              <span>02</span>
+              <h4 data-i18n="fw_art_priority">Приоритет</h4>
+              <p id="report-priority"></p>
+            </article>
+            <article>
+              <span>03</span>
+              <h4 data-i18n="fw_art_actions">Следващи действия</h4>
+              <ul id="report-actions"></ul>
+            </article>
+            <article>
+              <span>04</span>
+              <h4 data-i18n="fw_art_monitor">Наблюдение</h4>
+              <p id="report-monitoring"></p>
+            </article>
+          </div>
+          <form class="feedback-form" id="feedback-form">
+            <div>
+              <p class="eyebrow" data-i18n="fw_fb_eyebrow">Обратна връзка</p>
+              <h4 data-i18n="fw_fb_h">Помогна ли тази препоръка?</h4>
+            </div>
+            <label>
+              <span data-i18n="fw_fb_rating">Оценка</span>
+              <select name="rating">
+                <option value="5" data-i18n="rating_5">5 - много полезно</option>
+                <option value="4" data-i18n="rating_4">4 - полезно</option>
+                <option value="3" data-i18n="rating_3">3 - частично</option>
+                <option value="2" data-i18n="rating_2">2 - слабо</option>
+                <option value="1" data-i18n="rating_1">1 - не помогна</option>
+              </select>
+            </label>
+            <label class="feedback-check">
+              <input type="checkbox" name="helped" checked />
+              <span data-i18n="fw_fb_helped">Препоръката помогна на терен</span>
+            </label>
+            <label>
+              <span data-i18n="fw_fb_outcome">Какво се случи реално?</span>
+              <textarea name="outcome" rows="4" data-i18n-placeholder="fw_fb_outcome_ph" placeholder="Например: след проверка се установи уплътняване и проблемът беше само в северната зона..."></textarea>
+            </label>
+            <label>
+              <span data-i18n="fw_fb_corr">Какво да запомни системата за следващ път?</span>
+              <textarea name="correction" rows="4" data-i18n-placeholder="fw_fb_corr_ph" placeholder="Например: при подобен симптом първо да се пита за последна обработка и валеж..."></textarea>
+            </label>
+            <button type="submit" data-i18n="fw_fb_submit">Запази обратна връзка</button>
+            <p class="feedback-status" id="feedback-status"></p>
+          </form>
+        </div>
+      </section>
+
+      <section id="portal" class="section portal">
+        <div class="section-heading">
+          <p class="eyebrow" data-i18n="portal_eyebrow">Моето стопанство</p>
+          <h2 data-i18n="portal_h2">Практичен портал за много фермери, полета и доклади.</h2>
+          <p data-i18n="portal_intro">
+            Това е първа версия на работното пространство след вход. Всеки фермер
+            ще има собствено стопанство, списък с полета, история на Field Watch
+            анализите и ясна връзка с екипа на SIMA.
+          </p>
+        </div>
+
+        <div class="portal-shell">
+          <aside class="portal-sidebar">
+            <span class="brand-lockup brand-lockup--sidebar">
+              <img class="brand-lockup__mark" src="assets/sima-mark.svg" alt="" width="34" height="36" decoding="async" />
+              <span class="brand-wordmark brand-wordmark--sidebar">SIMA</span>
+            </span>
+            <div class="auth-card">
+              <strong id="auth-status" data-i18n="auth_local">Локален режим</strong>
+              <p id="auth-helper" data-i18n="auth_helper">Влезте, за да пазите данните в backend.</p>
+              <form id="auth-form">
+                <input type="text" name="name" data-i18n-placeholder="ph_name" placeholder="Име" />
+                <input type="email" name="email" data-i18n-placeholder="ph_email" placeholder="Имейл" />
+                <input type="password" name="password" data-i18n-placeholder="ph_pass" placeholder="Парола" />
+                <div>
+                  <button type="submit" data-auth-action="login" data-i18n="btn_login">Вход</button>
+                  <button type="submit" data-auth-action="register" data-i18n="btn_register">Регистрация</button>
+                </div>
+              </form>
+              <button class="logout-button" type="button" id="logout-button" hidden data-i18n="btn_logout">Изход</button>
+            </div>
+            <button class="portal-tab is-active" type="button" data-portal-tab="dashboard" data-i18n="tab_dash">Dashboard</button>
+            <button class="portal-tab" type="button" data-portal-tab="fields" data-i18n="tab_fields">Полета</button>
+            <button class="portal-tab" type="button" data-portal-tab="reports" data-i18n="tab_reports">Доклади</button>
+            <button class="portal-tab" type="button" data-portal-tab="tasks" data-i18n="tab_tasks">Задачи</button>
+            <button class="portal-tab" type="button" data-portal-tab="weather" data-i18n="tab_weather">Метео</button>
+            <button class="portal-tab" type="button" data-portal-tab="knowledge" data-i18n="tab_knowledge">Знания</button>
+            <button class="portal-tab" type="button" data-portal-tab="team" data-i18n="tab_team">SIMA екип</button>
+          </aside>
+
+          <div class="portal-workspace">
+            <section class="portal-panel is-active" data-portal-panel="dashboard">
+              <div class="portal-topline">
+                <div>
+                  <p class="eyebrow" data-i18n="dash_eyebrow">Общ преглед</p>
+                  <h3 data-i18n="dash_h">Работно табло</h3>
+                </div>
+                <span id="portal-date"></span>
+              </div>
+              <div class="metric-grid">
+                <article>
+                  <span id="metric-fields">0</span>
+                  <p data-i18n="metric_fields_lbl">активни полета</p>
+                </article>
+                <article>
+                  <span id="metric-reports">0</span>
+                  <p data-i18n="metric_reports_lbl">Field Watch доклади</p>
+                </article>
+                <article>
+                  <span id="metric-risks">0</span>
+                  <p data-i18n="metric_risks_lbl">активни риска</p>
+                </article>
+              </div>
+              <div class="daily-brief">
+                <h4 data-i18n="brief_ai_h">AI кратък преглед</h4>
+                <p id="portal-brief">
+                  Добавете първото поле, за да започне изграждането на история на стопанството.
+                </p>
+              </div>
+            </section>
+
+            <section class="portal-panel" data-portal-panel="fields">
+              <div class="portal-topline">
+                <div>
+                  <p class="eyebrow" data-i18n="fields_eyebrow">Полета</p>
+                  <h3 data-i18n="fields_h">Профили на парцели</h3>
+                </div>
+              </div>
+              <form class="portal-form" id="portal-field-form">
+                <input type="text" name="name" data-i18n-placeholder="ph_field_name" placeholder="Име на поле" />
+                <input type="text" name="area" data-i18n-placeholder="ph_field_area" placeholder="Площ, напр. 84 дка" />
+                <select name="crop">
+                  <option value="Пшеница" data-i18n="portal_crop_wheat">Пшеница</option>
+                  <option value="Царевица" data-i18n="portal_crop_corn">Царевица</option>
+                  <option value="Слънчоглед" data-i18n="portal_crop_sun">Слънчоглед</option>
+                  <option value="Овощна градина" data-i18n="portal_crop_orchard">Овощна градина</option>
+                  <option value="Зеленчуци" data-i18n="portal_crop_veg">Зеленчуци</option>
+                </select>
+                <button type="submit" data-i18n="btn_add_field">Добави поле</button>
+              </form>
+              <div class="field-map-tool">
+                <div class="field-map-toolbar">
+                  <div>
+                    <p class="eyebrow" data-i18n="map_eyebrow">Карта на полето</p>
+                    <h4 data-i18n="map_h">Очертаване на граница</h4>
+                  </div>
+                  <div class="field-map-actions">
+                    <button type="button" id="undo-map-point" data-i18n="map_undo">Назад</button>
+                    <button type="button" id="clear-map-points" data-i18n="map_clear">Изчисти</button>
+                    <button type="button" id="copy-geojson" data-i18n="map_geojson">GeoJSON</button>
+                  </div>
+                </div>
+                <div id="field-boundary-map" role="application" data-i18n-aria="map_aria"></div>
+                <p id="map-helper" data-i18n="map_helper">
+                  Картата показва реална география (OpenStreetMap). Кликайте по полето, за да добавите върхове на границата — нужни са поне три. Приближаване и местене: контролите вдясно.
+                </p>
+              </div>
+              <div class="portal-list" id="portal-fields-list"></div>
+              <div class="field-profile" id="field-profile" hidden>
+                <div class="portal-topline">
+                  <div>
+                    <p class="eyebrow" data-i18n="fp_eyebrow">Профил на поле</p>
+                    <h3 id="field-profile-title">Поле</h3>
+                  </div>
+                </div>
+                <div class="field-profile-grid">
+                  <article>
+                    <span data-i18n="fp_crop">Култура</span>
+                    <strong id="field-profile-crop"></strong>
+                  </article>
+                  <article>
+                    <span data-i18n="fp_area">Площ</span>
+                    <strong id="field-profile-area"></strong>
+                  </article>
+                  <article>
+                    <span data-i18n="fp_reports">Доклади</span>
+                    <strong id="field-profile-reports"></strong>
+                  </article>
+                  <article>
+                    <span data-i18n="fp_tasks">Отворени задачи</span>
+                    <strong id="field-profile-tasks"></strong>
+                  </article>
+                </div>
+                <div class="portal-list" id="field-profile-history"></div>
+              </div>
+            </section>
+
+            <section class="portal-panel" data-portal-panel="reports">
+              <div class="portal-topline">
+                <div>
+                  <p class="eyebrow" data-i18n="rep_eyebrow">Доклади</p>
+                  <h3 data-i18n="rep_h">История по стопанство</h3>
+                </div>
+              </div>
+              <div class="portal-list" id="portal-reports-list"></div>
+            </section>
+
+            <section class="portal-panel" data-portal-panel="tasks">
+              <div class="portal-topline">
+                <div>
+                  <p class="eyebrow" data-i18n="tasks_eyebrow">Задачи</p>
+                  <h3 data-i18n="tasks_h">Действия от докладите</h3>
+                </div>
+              </div>
+              <div class="portal-list" id="portal-tasks-list"></div>
+            </section>
+
+            <section class="portal-panel" data-portal-panel="weather">
+              <div class="portal-topline">
+                <div>
+                  <p class="eyebrow" data-i18n="wx_eyebrow">Метео модул</p>
+                  <h3 data-i18n="wx_h">Прогноза и работни прозорци</h3>
+                </div>
+              </div>
+              <form class="weather-form" id="weather-form">
+                <input type="text" name="location" data-i18n-placeholder="wx_ph" placeholder="Населено място, напр. Пловдив" />
+                <button type="submit" data-i18n="wx_submit">Провери времето</button>
+              </form>
+              <div class="weather-result" id="weather-result">
+                <p class="empty-portal" data-i18n="wx_empty">Въведете място, за да видите прогноза, риск и препоръчани действия.</p>
+              </div>
+            </section>
+
+            <section class="portal-panel" data-portal-panel="knowledge">
+              <div class="portal-topline">
+                <div>
+                  <p class="eyebrow" data-i18n="kn_eyebrow">База знания</p>
+                  <h3 data-i18n="kn_h">Източници за самообучение</h3>
+                </div>
+              </div>
+              <form class="knowledge-form" id="knowledge-form">
+                <input type="text" name="title" data-i18n-placeholder="kn_ph_title" placeholder="Заглавие" />
+                <input type="url" name="url" data-i18n-placeholder="kn_ph_url" placeholder="URL за изтегляне, по желание" />
+                <textarea name="text" rows="5" data-i18n-placeholder="kn_ph_text" placeholder="Или поставете ръчно текст, агрономична бележка, наблюдение, правило..."></textarea>
+                <label class="feedback-check">
+                  <input type="checkbox" name="indexForRag" />
+                  <span data-i18n="kn_rag">Индексирай за RAG (откъси в семантичното търсене за Field Watch)</span>
+                </label>
+                <p class="muted" id="rag-status-line" style="font-size: 0.86rem; margin-top: 8px; line-height: 1.45"></p>
+                <button type="submit" data-i18n="kn_add">Добави знание</button>
+              </form>
+              <div class="portal-list" id="knowledge-list"></div>
+            </section>
+
+            <section class="portal-panel" data-portal-panel="team">
+              <div class="portal-topline">
+                <div>
+                  <p class="eyebrow" data-i18n="team_eyebrow">SIMA екип</p>
+                  <h3 data-i18n="team_h">Опашка за преглед</h3>
+                </div>
+              </div>
+              <div class="team-queue" id="team-queue"></div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="section promise">
+        <div>
+          <p class="eyebrow" data-i18n="promise_eyebrow">Нашата роля</p>
+          <h2 data-i18n="promise_h2">Разплитаме възела заедно с вас.</h2>
+        </div>
+        <p data-i18n="promise_p">
+          Всеки фермер има различен проблем: липса на време, несигурни решения,
+          разпилени данни, трудна координация или натиск върху разходите. Нашият
+          екип влиза спокойно, слуша внимателно и изгражда практично AI решение,
+          което работи с реалността на стопанството.
+        </p>
+      </section>
+
+      <section id="advisor" class="section advisor">
+        <div class="section-heading">
+          <p class="eyebrow" data-i18n="adv_eyebrow">Къде да започнете</p>
+          <h2 data-i18n="adv_h2">Отговорете на 3 въпроса и вижте най-подходящия първи AI модул.</h2>
+        </div>
+        <div class="advisor-layout">
+          <form class="advisor-form" id="advisor-form">
+            <fieldset>
+              <legend data-i18n="adv_fs1">Какъв е мащабът на стопанството?</legend>
+              <label><input type="radio" name="scale" value="small" checked /> <span data-i18n="adv_sc_small">Малко стопанство</span></label>
+              <label><input type="radio" name="scale" value="medium" /> <span data-i18n="adv_sc_med">Средна ферма</span></label>
+              <label><input type="radio" name="scale" value="large" /> <span data-i18n="adv_sc_large">Голяма компания</span></label>
+            </fieldset>
+            <fieldset>
+              <legend data-i18n="adv_fs2">Къде усещате най-голямо напрежение?</legend>
+              <label><input type="radio" name="pain" value="fields" checked /> <span data-i18n="adv_pn_fields">Неясно състояние на полетата</span></label>
+              <label><input type="radio" name="pain" value="resources" /> <span data-i18n="adv_pn_res">Разходи за вода, торене и препарати</span></label>
+              <label><input type="radio" name="pain" value="operations" /> <span data-i18n="adv_pn_ops">Организация на хора, техника и задачи</span></label>
+              <label><input type="radio" name="pain" value="risk" /> <span data-i18n="adv_pn_risk">Болести, климатичен риск и закъснели реакции</span></label>
+            </fieldset>
+            <fieldset>
+              <legend data-i18n="adv_fs3">Какъв резултат искате първо?</legend>
+              <label><input type="radio" name="goal" value="clarity" checked /> <span data-i18n="adv_gl_clarity">Повече яснота и спокойствие</span></label>
+              <label><input type="radio" name="goal" value="savings" /> <span data-i18n="adv_gl_save">По-малко излишни разходи</span></label>
+              <label><input type="radio" name="goal" value="control" /> <span data-i18n="adv_gl_ctrl">По-добър управленски контрол</span></label>
+            </fieldset>
+          </form>
+          <aside class="advisor-result" aria-live="polite">
+            <span id="advisor-tag">Препоръчан старт</span>
+            <h3 id="advisor-title">Field Watch</h3>
+            <p id="advisor-text">
+              Започнете с наблюдение на полетата. Това дава бърза яснота къде има риск,
+              кои зони изискват внимание и какво може да се провери на място.
+            </p>
+            <a class="button primary" href="#contact" data-i18n="adv_btn">Искам такъв план</a>
+          </aside>
+        </div>
+      </section>
+
+      <section id="process" class="section process">
+        <div class="section-heading">
+          <p class="eyebrow" data-i18n="proc_eyebrow">Как работим</p>
+          <h2 data-i18n="proc_h2">От първи разговор до внедрена система.</h2>
+        </div>
+        <div class="timeline">
+          <article>
+            <span>01</span>
+            <h3 data-i18n="proc1_h">Диагностика</h3>
+            <p data-i18n="proc1_p">Изясняваме проблема, процесите, наличните данни и целите за сезона.</p>
+          </article>
+          <article>
+            <span>02</span>
+            <h3 data-i18n="proc2_h">AI план</h3>
+            <p data-i18n="proc2_p">Избираме правилната комбинация от наблюдение, анализ, автоматизация и обучение.</p>
+          </article>
+          <article>
+            <span>03</span>
+            <h3 data-i18n="proc3_h">Внедряване</h3>
+            <p data-i18n="proc3_p">Свързваме данни, техника и екип в работеща система с ясни сигнали и отчети.</p>
+          </article>
+          <article>
+            <span>04</span>
+            <h3 data-i18n="proc4_h">Подобряване</h3>
+            <p data-i18n="proc4_p">Следим резултата, настройваме моделите и развиваме решението с растежа на стопанството.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="scale" class="section scale">
+        <div class="scale-copy">
+          <p class="eyebrow" data-i18n="scale_eyebrow">За малки и големи</p>
+          <h2 data-i18n="scale_h2">Решение може да се намери за всеки мащаб.</h2>
+          <p data-i18n="scale_p">
+            Малкият фермер има нужда от яснота и спестено време. Голямата компания
+            има нужда от контрол, интеграции и управленска картина. SIMA
+            изгражда мост между земята, данните и решенията.
+          </p>
+        </div>
+        <div class="scale-list">
+          <div>
+            <strong data-i18n="scale_s1_t">Малки стопанства</strong>
+            <span data-i18n="scale_s1_d">лесен старт, конкретен проблем, бърз ефект</span>
+          </div>
+          <div>
+            <strong data-i18n="scale_s2_t">Средни ферми</strong>
+            <span data-i18n="scale_s2_d">по-добро планиране, екипна координация, прогнозиране</span>
+          </div>
+          <div>
+            <strong data-i18n="scale_s3_t">Големи компании</strong>
+            <span data-i18n="scale_s3_d">интеграции, автоматизирани отчети, управление по данни</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="privacy" class="legal-section">
+        <p class="eyebrow" data-i18n="legal_eyebrow">Правна информация</p>
+        <h2 data-i18n="privacy_h2">Политика за поверителност</h2>
+        <div class="legal-body">
+          <p data-i18n="privacy_p1_html" data-i18n-html="1">
+            <strong>Кой обработва данните.</strong> SIMA.
+            <a href="mailto:info@agrinexus.eu">info@agrinexus.eu</a>
+          </p>
+          <p data-i18n="privacy_p2_html" data-i18n-html="1"></p>
+          <p data-i18n="privacy_p3_html" data-i18n-html="1"></p>
+          <p data-i18n="privacy_p4_html" data-i18n-html="1"></p>
+          <p data-i18n="privacy_p5_html" data-i18n-html="1"></p>
+        </div>
+      </section>
+
+      <section id="terms" class="legal-section">
+        <p class="eyebrow" data-i18n="legal_eyebrow">Правна информация</p>
+        <h2 data-i18n="terms_h2">Общи условия за ползване на сайта</h2>
+        <div class="legal-body">
+          <p data-i18n="terms_p1_html" data-i18n-html="1"></p>
+          <p data-i18n="terms_p2_html" data-i18n-html="1"></p>
+          <p data-i18n="terms_p3_html" data-i18n-html="1"></p>
+          <p data-i18n="terms_p4_html" data-i18n-html="1"></p>
+          <p data-i18n="terms_p5_html" data-i18n-html="1"></p>
+        </div>
+      </section>
+
+      <section id="contact" class="contact">
+        <div>
+          <p class="eyebrow">
+            <span class="brand-lockup brand-lockup--eyebrow">
+              <img class="brand-lockup__mark" src="assets/sima-mark.svg" alt="" width="20" height="22" decoding="async" />
+              <span class="brand-wordmark brand-wordmark--eyebrow">SIMA</span>
+            </span>
+          </p>
+          <h2 data-i18n="contact_h2">Нека започнем с проблема, който ви тежи най-много.</h2>
+          <p data-i18n="contact_p">
+            Опишете стопанството, процеса или решението, което търсите. Ще върнем
+            ясен първи план: какво може да се измери, какво може да се автоматизира
+            и откъде има смисъл да започнем.
+          </p>
+        </div>
+        <form class="contact-form" id="contact-form">
+          <label>
+            <span data-i18n="lbl_contact_name">Име</span>
+            <input type="text" name="name" data-i18n-placeholder="ph_contact_name" placeholder="Вашето име" />
+          </label>
+          <label>
+            <span data-i18n="lbl_contact_email">Имейл</span>
+            <input type="email" name="email" data-i18n-placeholder="ph_contact_email" placeholder="вашият@имейл.eu" />
+          </label>
+          <label>
+            <span data-i18n="lbl_contact_msg">Какъв проблем искате да решим?</span>
+            <textarea name="message" rows="5" data-i18n-placeholder="ph_contact_msg" placeholder="Например: наблюдение на посеви, поливане, отчети, техника..."></textarea>
+          </label>
+          <button type="submit" data-i18n="contact_submit">Изпрати запитване</button>
+          <p id="contact-status" class="contact-status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="site-footer__top">
+        <span class="brand-lockup brand-lockup--footer">
+          <img class="brand-lockup__mark" src="assets/sima-mark.svg" alt="" width="22" height="24" decoding="async" />
+          <span class="brand-wordmark brand-wordmark--footer">SIMA</span>
+        </span>
+        <nav class="site-footer__links" data-i18n-aria="footer_nav_aria" aria-label="Връзки в долната част на страницата">
+          <a href="#privacy" data-i18n="nav_privacy">Поверителност</a>
+          <a href="#terms" data-i18n="nav_terms">Условия</a>
+          <a
+            class="linkedin-in-badge"
+            href="https://www.linkedin.com"
+            target="_blank"
+            rel="noreferrer"
+            data-i18n-aria="social_aria">in</a>
+        </nav>
+      </div>
+      <p class="footer-credit" data-i18n="footer_credit_html" data-i18n-html="1"></p>
+    </footer>
+
+    <div
+      id="cookie-banner"
+      class="cookie-banner"
+      role="dialog"
+      data-i18n-aria="cookie_aria"
+      hidden
+    >
+      <p data-i18n="cookie_text_html" data-i18n-html="1">
+        Ползваме само технически необходими механизми за сайта и при нужда локално съхранение в браузъра за демо и портала.
+        С „Разбирам“ потвърждавате запознаването си с <a href="#privacy">политиката за поверителност</a>.
+      </p>
+      <button type="button" class="button primary cookie-accept" data-cookie-accept data-i18n="cookie_ok">
+        Разбирам
+      </button>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.min.js" crossorigin="anonymous"></script>
+    <script src="i18n.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

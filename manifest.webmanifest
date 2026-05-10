@@ -1,0 +1,10 @@
+{
+  "name": "SIMA",
+  "short_name": "SIMA",
+  "description": "SIMA — AI решения за модерно земеделие — Field Watch и фермерски портал.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fffdf8",
+  "theme_color": "#063d2a",
+  "lang": "bg"
+}
