@@ -1,0 +1,21 @@
+# Пример: стартиране зад nginx или директно на порт 3001
+services:
+  sima-site:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: "3001"
+      # Зад HTTPS reverse proxy (за sitemap/robots и др.):
+      # PUBLIC_HTTPS: "1"
+      # PUBLIC_ORIGIN: "https://your-domain.example"
+      # LLM / embeddings — виж .env.example
+    volumes:
+      # Запазване на JSON базата и качени файлове между рестарти
+      - sima-data:/app/data
+      - sima-uploads:/app/uploads
+
+volumes:
+  sima-data:
+  sima-uploads:

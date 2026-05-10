@@ -1,0 +1,21 @@
+# Пример за systemd (Ubuntu/Debian): записвате като /etc/systemd/system/sima-site.service
+# Ползвателят и пътят Adapt към сървъра си.
+
+[Unit]
+Description=SIMA site (Node)
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/SIMA-site
+Environment=NODE_ENV=production
+Environment=PORT=3001
+Environment=PUBLIC_HTTPS=1
+Environment=PUBLIC_ORIGIN=https://your-domain.example
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

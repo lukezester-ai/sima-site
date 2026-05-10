@@ -45,3 +45,46 @@ Field Watch подава към LLM и **извлечени откъси** от 
 ## Git
 
 `data/db.json` е в **`.gitignore`** — не качвайте реални потребители/сесии. Ползвайте `data/db.seed.json` като шаблон.
+
+## Деплой на сървър
+
+Приложението е един Node процес (`server.js`), статичните файлове се обслужват от него. На продукция най-често стои зад **nginx** (HTTPS) или облачен балансьор.
+
+### Вариант A — Docker Compose
+
+На сървъра (с инсталиран Docker):
+
+```bash
+git clone https://github.com/roxsonltd-droid/SIMA-site.git
+cd SIMA-site
+docker compose up -d --build
+```
+
+По подразбиране: **http://СЪРВЪР:3001**. Данните са в именувани volume-и (`data`, `uploads`). За LLM/RAG задайте променливи в `docker-compose.yml` или чрез `environment`/dotenv според вашата среда.
+
+Празна база от семето (ако искате копие от `db.seed.json` преди първи старт в постоянен volume):
+
+```bash
+docker compose run --rm sima-site node scripts/copy-seed-db.mjs
+```
+
+*(Използвайте `--force` за презапис само ако знаете какво правите.)*
+
+### Вариант B — директно Node + systemd
+
+```bash
+git clone https://github.com/roxsonltd-droid/SIMA-site.git
+cd SIMA-site
+npm ci --omit=dev
+export NODE_ENV=production
+export PORT=3001
+export PUBLIC_HTTPS=1
+export PUBLIC_ORIGIN=https://вашият-домейн.example
+node server.js
+```
+
+Примерен systemd unit: **[deploy/sima-site.service.example](./deploy/sima-site.service.example)**.
+
+### nginx + HTTPS
+
+Пример за proxy към порт 3001: **[deploy/nginx-sima.example.conf](./deploy/nginx-sima.example.conf)**. Задали ли сте reverse proxy, задайте **`PUBLIC_HTTPS=1`** и **`PUBLIC_ORIGIN`** според публичния URL (виж [.env.example](./.env.example)).
