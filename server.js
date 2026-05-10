@@ -8,8 +8,12 @@ import { randomBytes, pbkdf2Sync } from "node:crypto";
 
 const port = Number(process.env.PORT || 3001);
 const root = dirname(fileURLToPath(import.meta.url));
-const dataDir = join(root, "data");
-const uploadsDir = join(root, "uploads");
+const isVercel = Boolean(process.env.VERCEL);
+/** Локално: data/ и uploads/. На Vercel: само /tmp (данните не са постоянни между деплой и скалиране). */
+const dataDir = isVercel ? join("/tmp", "sima-data") : join(root, "data");
+const uploadsDir = isVercel ? join("/tmp", "sima-uploads") : join(root, "uploads");
+const publicRoot = normalize(join(root, "public"));
+const serverErrorLogPath = isVercel ? join("/tmp", "sima-server-error.log") : join(root, "server-error.log");
 const dbPath = join(dataDir, "db.json");
 const inquiriesPath = join(dataDir, "contact-inquiries.json");
 
@@ -1213,8 +1217,9 @@ async function handleApi(req, res, pathname) {
 
 async function serveStatic(req, res, pathname) {
   const requested = pathname === "/" ? "/index.html" : decodeURIComponent(pathname);
-  const filePath = normalize(join(root, requested));
-  if (!filePath.startsWith(root)) {
+  const relative = requested.replace(/^\/+/, "");
+  const filePath = normalize(join(publicRoot, relative));
+  if (!filePath.startsWith(publicRoot)) {
     res.writeHead(403, withSecurityHeaders({ "content-type": "text/plain; charset=utf-8" }));
     res.end("Forbidden");
     return;
@@ -1245,7 +1250,7 @@ function publicSiteOrigin(req) {
   return `${proto}://${host}`;
 }
 
-const server = createServer(async (req, res) => {
+async function mainHttpHandler(req, res) {
   try {
     const url = new URL(req.url, `http://${req.headers.host}`);
     const pathname = url.pathname;
@@ -1278,18 +1283,24 @@ const server = createServer(async (req, res) => {
     console.error(error);
     json(res, 500, { error: "Вътрешна грешка в сървъра." });
   }
-});
+}
 
-server.on("error", async (error) => {
-  console.error("SIMA server listen error:", error.message || error);
-  try {
-    await appendFile(join(root, "server-error.log"), `${new Date().toISOString()} ${error.stack}\n`);
-  } catch {
-    /* ignore log write failure */
-  }
-  process.exit(1);
-});
+const server = createServer(mainHttpHandler);
 
-server.listen(port, () => {
-  console.log(`SIMA running on http://localhost:${port}`);
-});
+if (!isVercel) {
+  server.on("error", async (error) => {
+    console.error("SIMA server listen error:", error.message || error);
+    try {
+      await appendFile(serverErrorLogPath, `${new Date().toISOString()} ${error.stack}\n`);
+    } catch {
+      /* ignore log write failure */
+    }
+    process.exit(1);
+  });
+
+  server.listen(port, () => {
+    console.log(`SIMA running on http://localhost:${port}`);
+  });
+}
+
+export default mainHttpHandler;

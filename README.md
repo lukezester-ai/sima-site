@@ -24,7 +24,7 @@ npm run seed:db
 
 ## Лого
 
-Изходен вектор: `assets/sima-logo.svg`. PNG за сайта:
+Изходен вектор: `public/assets/sima-logo.svg`. PNG за сайта:
 
 ```powershell
 npm run build:logo
@@ -120,3 +120,15 @@ sudo systemctl enable --now sima-site
 ### nginx + HTTPS
 
 Пример за proxy към порт 3001: **[deploy/nginx-sima.example.conf](./deploy/nginx-sima.example.conf)**. Задали ли сте reverse proxy, задайте **`PUBLIC_HTTPS=1`** и **`PUBLIC_ORIGIN`** според публичния URL (виж [.env.example](./.env.example)).
+
+### Вариант C — Vercel
+
+Статичните файлове са в **`public/`**. API маршрутите са под **`/api/*`** чрез **`api/[...slug].js`** (закачва се към логиката в **`server.js`**).
+
+**Важно:** на Vercel няма постоянен локален диск като на VPS. **`data/` и `uploads/`** се насочват към **`/tmp`** — данните са **непостоянни** (изчезват при нов деплой / различни инстанции). За реален портал с регистрации и файлове ползвайте VPS или външна база/Blob.
+
+В проекта в [**Vercel Dashboard**](https://vercel.com/new) импортирайте GitHub repo **`roxsonltd-droid/SIMA-site`**. В **Environment Variables** задайте поне **`PUBLIC_ORIGIN`** (публичен `https://…` без накраен `/`) и при нужда **`PUBLIC_HTTPS=1`**, както и ключовете за LLM/RAG от [.env.example](./.env.example).
+
+Лимити за изпълнение на функции на безплатния план са къси — тежки LLM заявки може да изискват **Pro** или backend на VPS.
+
+Локално **`npm start`** продължава да обслужва статиката от **`public/`** и базата от **`data/`**.
