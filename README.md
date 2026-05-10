@@ -70,12 +70,25 @@ docker compose run --rm sima-site node scripts/copy-seed-db.mjs
 
 *(Използвайте `--force` за презапис само ако знаете какво правите.)*
 
-### Вариант B — директно Node + systemd
+### Вариант B — само Node (препоръчително за VPS)
+
+Нужен е **Node.js 18+** (`node -v`).
 
 ```bash
 git clone https://github.com/roxsonltd-droid/SIMA-site.git
 cd SIMA-site
 npm ci --omit=dev
+```
+
+По желание празна база от семето:
+
+```bash
+npm run seed:db
+```
+
+Старт на преден план (тест):
+
+```bash
 export NODE_ENV=production
 export PORT=3001
 export PUBLIC_HTTPS=1
@@ -83,7 +96,26 @@ export PUBLIC_ORIGIN=https://вашият-домейн.example
 node server.js
 ```
 
-Примерен systemd unit: **[deploy/sima-site.service.example](./deploy/sima-site.service.example)**.
+Слуша на **`http://0.0.0.0:3001`** (отвън достъпно като `http://IP:3001`, освен ако firewall блокира).
+
+#### PM2 (рестарт при падане, логове)
+
+```bash
+npm install -g pm2
+# Редактирайте PUBLIC_* в ecosystem.config.cjs при нужда
+pm2 start ecosystem.config.cjs --env production
+pm2 save
+pm2 startup   # показва команда за systemd hook — изпълнете я веднъж
+```
+
+#### systemd (без PM2)
+
+Примерен unit файл: **[deploy/sima-site.service.example](./deploy/sima-site.service.example)** — настройте `User`, `WorkingDirectory` и `Environment` според сървъра, после:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now sima-site
+```
 
 ### nginx + HTTPS
 
