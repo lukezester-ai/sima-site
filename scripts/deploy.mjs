@@ -16,8 +16,10 @@ import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const sh = (cmd, opts = {}) =>
-  execSync(cmd, { stdio: opts.silent ? "pipe" : "inherit", encoding: "utf-8" }).trim();
+function sh(cmd, opts = {}) {
+  const out = execSync(cmd, { stdio: opts.silent ? "pipe" : "inherit", encoding: "utf-8" });
+  return out ? out.trim() : "";
+}
 const shOut = (cmd) => execSync(cmd, { stdio: "pipe", encoding: "utf-8" }).trim();
 
 function step(n, total, title) {
