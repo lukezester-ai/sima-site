@@ -159,10 +159,28 @@ sudo systemctl enable --now sima-site
 
 Статичните файлове са в **`public/`**. API маршрутите са под **`/api/*`** чрез **`api/[...slug].js`** (закачва се към логиката в **`server.js`**).
 
-**Важно:** на Vercel няма постоянен локален диск като на VPS. **`data/` и `uploads/`** се насочват към **`/tmp`** — данните са **непостоянни** (изчезват при нов деплой / различни инстанции). За реален портал с регистрации и файлове ползвайте VPS или външна база/Blob.
+**Важно:** на Vercel няма постоянен локален диск. Без допълнителна настройка `data/db.json` и качените файлове живеят в `/tmp` и **изчезват** при нов deploy или при scaling. За запазване на регистрации/полета/задачи ползвайте **Vercel KV** (виж по-долу).
 
 В проекта в [**Vercel Dashboard**](https://vercel.com/new) импортирайте GitHub repo **`roxsonltd-droid/SIMA-site`**. В **Environment Variables** задайте поне **`PUBLIC_ORIGIN`** (публичен `https://…` без накраен `/`) и при нужда **`PUBLIC_HTTPS=1`**, както и ключовете за LLM/RAG от [.env.example](./.env.example).
 
 Лимити за изпълнение на функции на безплатния план са къси — тежки LLM заявки може да изискват **Pro** или backend на VPS.
 
 Локално **`npm start`** продължава да обслужва статиката от **`public/`** и базата от **`data/`**.
+
+#### Persistent storage — Vercel KV (Upstash Redis)
+
+За да оцеляват потребителите и данните между deploy-и, свържете проекта с Vercel KV:
+
+1. Vercel Dashboard → проект **`sima-site`** → **Storage** → **Create Database** → **KV**.
+2. Изберете регион (за България — Frankfurt / EU West).
+3. След създаване чукнете **„Connect Project"** и изберете `sima-site`.
+4. Vercel автоматично добавя в Environment Variables:
+   - `KV_REST_API_URL`
+   - `KV_REST_API_TOKEN`
+   - `KV_REST_API_READ_ONLY_TOKEN` (по желание)
+   - `KV_URL` (TCP, не се ползва от сървъра)
+5. **Redeploy** на проекта — при старт логът показва `SIMA storage: Vercel KV (key=sima:db)`.
+
+След това регистрираните потребители, сесиите, полетата и т.н. се пишат в KV и се пазят между deploy-и. Качените файлове в `uploads/` остават непостоянни (KV не е за бинарни данни — за тях Vercel Blob / S3).
+
+Локално (без KV env vars) сървърът пада обратно към `data/db.json` както досега.

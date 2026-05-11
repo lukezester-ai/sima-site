@@ -49,6 +49,54 @@ const serverErrorLogPath = isVercel ? join("/tmp", "sima-server-error.log") : jo
 const dbPath = join(dataDir, "db.json");
 const inquiriesPath = join(dataDir, "contact-inquiries.json");
 
+/**
+ * Persistent storage през Vercel KV (Upstash REST).
+ * Ако KV_REST_API_URL и KV_REST_API_TOKEN са налични — данните живеят там
+ * (преживяват deploy и scaling). Иначе пада обратно към локален файл (`data/`),
+ * което е удобно за dev. На Vercel без KV данните се пишат в /tmp и изчезват.
+ */
+const kvRestUrl = (process.env.KV_REST_API_URL || "").replace(/\/+$/, "");
+const kvRestToken = process.env.KV_REST_API_TOKEN || "";
+const kvEnabled = Boolean(kvRestUrl && kvRestToken);
+const KV_DB_KEY = process.env.KV_DB_KEY || "sima:db";
+const KV_INQUIRIES_KEY = process.env.KV_INQUIRIES_KEY || "sima:contact-inquiries";
+
+/** Изпълнява една Upstash REST команда; връща `result` или хвърля. */
+async function kvCommand(args) {
+  if (!kvEnabled) throw new Error("KV not configured");
+  const res = await fetch(kvRestUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${kvRestToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(args),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`KV ${res.status} ${res.statusText}: ${text.slice(0, 200)}`);
+  }
+  const data = await res.json();
+  if (data && Object.prototype.hasOwnProperty.call(data, "error")) {
+    throw new Error(`KV error: ${data.error}`);
+  }
+  return data?.result;
+}
+
+async function kvGetJson(key) {
+  const raw = await kvCommand(["GET", key]);
+  if (raw == null) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+async function kvSetJson(key, value) {
+  await kvCommand(["SET", key, JSON.stringify(value)]);
+}
+
 /** Единствен публичен контакт за запитвания (AgriNexus / SIMA). */
 const CONTACT_EMAIL = "info@agrinexus.eu";
 
@@ -270,52 +318,83 @@ const Bulgarian = {
   unknown: "Неясен проблем",
 };
 
+const EMPTY_DB = () => ({
+  users: [],
+  sessions: [],
+  fields: [],
+  reports: [],
+  knowledge: [],
+  feedback: [],
+  tasks: [],
+  ragChunks: [],
+});
+
+function normalizeDb(db) {
+  const d = db && typeof db === "object" ? db : EMPTY_DB();
+  d.users ||= [];
+  d.sessions ||= [];
+  d.fields ||= [];
+  d.reports ||= [];
+  d.knowledge ||= [];
+  d.feedback ||= [];
+  d.tasks ||= [];
+  d.ragChunks ||= [];
+  return d;
+}
+
 async function ensureStorage() {
   await mkdir(dataDir, { recursive: true });
   await mkdir(uploadsDir, { recursive: true });
+  if (kvEnabled) return;
   try {
     await stat(dbPath);
   } catch {
-    await writeFile(
-      dbPath,
-      JSON.stringify(
-        {
-          users: [],
-          sessions: [],
-          fields: [],
-          reports: [],
-          knowledge: [],
-          feedback: [],
-          tasks: [],
-          ragChunks: [],
-        },
-        null,
-        2
-      ),
-      "utf-8"
-    );
+    await writeFile(dbPath, JSON.stringify(EMPTY_DB(), null, 2), "utf-8");
   }
 }
 
 async function readDb() {
   await ensureStorage();
-  const db = JSON.parse(await readFile(dbPath, "utf-8"));
-  db.users ||= [];
-  db.sessions ||= [];
-  db.fields ||= [];
-  db.reports ||= [];
-  db.knowledge ||= [];
-  db.feedback ||= [];
-  db.tasks ||= [];
-  db.ragChunks ||= [];
-  return db;
+  if (kvEnabled) {
+    try {
+      const value = await kvGetJson(KV_DB_KEY);
+      return normalizeDb(value);
+    } catch (err) {
+      console.error("[kv] readDb failed, falling back to file:", err.message);
+    }
+  }
+  try {
+    return normalizeDb(JSON.parse(await readFile(dbPath, "utf-8")));
+  } catch {
+    return normalizeDb(null);
+  }
 }
 
 async function writeDb(db) {
-  await writeFile(dbPath, JSON.stringify(db, null, 2), "utf-8");
+  const normalized = normalizeDb(db);
+  if (kvEnabled) {
+    try {
+      await kvSetJson(KV_DB_KEY, normalized);
+      return;
+    } catch (err) {
+      console.error("[kv] writeDb failed, falling back to file:", err.message);
+    }
+  }
+  await writeFile(dbPath, JSON.stringify(normalized, null, 2), "utf-8");
 }
 
 async function appendContactInquiry(record) {
+  if (kvEnabled) {
+    try {
+      const existing = (await kvGetJson(KV_INQUIRIES_KEY)) || [];
+      const list = Array.isArray(existing) ? existing : [];
+      list.unshift(record);
+      await kvSetJson(KV_INQUIRIES_KEY, list.slice(0, 2000));
+      return;
+    } catch (err) {
+      console.error("[kv] appendContactInquiry failed, falling back to file:", err.message);
+    }
+  }
   await mkdir(dataDir, { recursive: true });
   let list = [];
   try {
@@ -1503,6 +1582,7 @@ if (!isVercel) {
 
   server.listen(port, () => {
     console.log(`SIMA running on http://localhost:${port}`);
+    console.log(`SIMA storage: ${kvEnabled ? `Vercel KV (key=${KV_DB_KEY})` : `file (${dbPath})`}`);
   });
 
   let shuttingDown = false;
