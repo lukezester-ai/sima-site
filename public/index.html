@@ -75,25 +75,28 @@
         </div>
 
         <div class="hero-visual" data-i18n-aria="hero_visual_aria">
-          <div class="field-map">
-            <span class="scan scan-one"></span>
-            <span class="scan scan-two"></span>
-            <span class="node node-one"></span>
-            <span class="node node-two"></span>
-            <span class="node node-three"></span>
-          </div>
-          <div class="insight-panel">
+          <figure class="field-map field-map--snapshot">
+            <img
+              src="assets/hero-field-map.svg"
+              alt=""
+              width="600"
+              height="400"
+              decoding="async"
+              loading="lazy"
+            />
+          </figure>
+          <div class="insight-panel" id="hero-insights" aria-live="polite">
             <div>
-              <span data-i18n="insight_growth">Индекс на растеж</span>
-              <strong>87%</strong>
+              <span data-insight-label="0"></span>
+              <strong data-insight-value="0"></strong>
             </div>
             <div>
-              <span data-i18n="insight_stress">Риск от стрес</span>
-              <strong data-i18n="insight_low">нисък</strong>
+              <span data-insight-label="1"></span>
+              <strong data-insight-value="1"></strong>
             </div>
             <div>
-              <span data-i18n="insight_rec">Препоръка</span>
-              <strong data-i18n="insight_water">поливане след 18:00</strong>
+              <span data-insight-label="2"></span>
+              <strong data-insight-value="2"></strong>
             </div>
           </div>
         </div>

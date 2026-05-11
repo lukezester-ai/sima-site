@@ -65,6 +65,38 @@ let boundaryLngLatVertices = [];
 let boundaryMapInstance = null;
 let boundaryMapReady = false;
 let authAction = "login";
+
+/**
+ * Конфигурация за tile сървъра. Зарежда се от /api/config преди инициализация
+ * на картата. Default стойностите са OSM (без ключ, само за разработка).
+ */
+const mapConfig = {
+  tileUrl: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+  tileAttribution:
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  maxZoom: 19,
+  satelliteTileUrl: null,
+  satelliteAttribution: null,
+  satelliteMaxZoom: 19,
+  terrain: null,
+  weather: null,
+};
+let activeBaseLayer = "street";
+let terrainEnabled = false;
+const activeWeatherLayers = new Set();
+let rainViewerTimer = null;
+let rainViewerCurrentTs = null;
+
+async function loadMapConfig() {
+  try {
+    const res = await fetch("/api/config");
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data?.map) Object.assign(mapConfig, data.map);
+  } catch {
+    /* keep defaults */
+  }
+}
 const appState = {
   fields: null,
   reports: null,
@@ -396,26 +428,57 @@ function initBoundaryMapLibre() {
 
   boundaryMap.dataset.boundaryMapInit = "1";
 
-  const osmStyle = {
-    version: 8,
-    sources: {
-      osm: {
-        type: "raster",
-        tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-        tileSize: 256,
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      },
+  const sources = {
+    "base-street": {
+      type: "raster",
+      tiles: [mapConfig.tileUrl],
+      tileSize: 256,
+      attribution: mapConfig.tileAttribution,
+      maxzoom: mapConfig.maxZoom,
     },
-    layers: [{ id: "osm", type: "raster", source: "osm", minzoom: 0, maxzoom: 19 }],
   };
+  const layers = [
+    {
+      id: "base-street",
+      type: "raster",
+      source: "base-street",
+      minzoom: 0,
+      maxzoom: mapConfig.maxZoom,
+    },
+  ];
+
+  if (mapConfig.satelliteTileUrl) {
+    sources["base-satellite"] = {
+      type: "raster",
+      tiles: [mapConfig.satelliteTileUrl],
+      tileSize: 256,
+      attribution: mapConfig.satelliteAttribution,
+      maxzoom: mapConfig.satelliteMaxZoom,
+    };
+    layers.push({
+      id: "base-satellite",
+      type: "raster",
+      source: "base-satellite",
+      minzoom: 0,
+      maxzoom: mapConfig.satelliteMaxZoom,
+      layout: { visibility: "none" },
+    });
+  }
+
+  const baseStyle = { version: 8, sources, layers };
+  const overallMaxZoom = Math.min(
+    mapConfig.satelliteTileUrl
+      ? Math.max(mapConfig.maxZoom, mapConfig.satelliteMaxZoom)
+      : mapConfig.maxZoom,
+    20
+  );
 
   boundaryMapInstance = new maplibregl.Map({
     container: boundaryMap,
-    style: osmStyle,
+    style: baseStyle,
     center: [24.7489, 42.1354],
     zoom: 7,
-    maxZoom: 18,
+    maxZoom: overallMaxZoom,
   });
 
   boundaryMapInstance.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
@@ -472,9 +535,17 @@ function initBoundaryMapLibre() {
       },
     });
 
+    addTerrainSourceAndHillshade();
+    addWeatherSourcesAndLayers();
+
     boundaryMapReady = true;
     updateBoundaryMapSource();
+    ensureMapToggleButtons();
     renderBoundaryMap();
+
+    if (mapConfig.weather?.provider === "rainviewer") {
+      startRainViewerRefresh();
+    }
   });
 
   boundaryMapInstance.on("click", (e) => {
@@ -484,6 +555,213 @@ function initBoundaryMapLibre() {
   });
 
   window.addEventListener("resize", resizeBoundaryMap);
+}
+
+function setBaseLayer(kind) {
+  if (!boundaryMapInstance || !boundaryMapReady) return;
+  if (kind === "satellite" && !mapConfig.satelliteTileUrl) return;
+  activeBaseLayer = kind;
+  const streetVisible = kind === "street";
+  if (boundaryMapInstance.getLayer("base-street")) {
+    boundaryMapInstance.setLayoutProperty(
+      "base-street",
+      "visibility",
+      streetVisible ? "visible" : "none"
+    );
+  }
+  if (boundaryMapInstance.getLayer("base-satellite")) {
+    boundaryMapInstance.setLayoutProperty(
+      "base-satellite",
+      "visibility",
+      streetVisible ? "none" : "visible"
+    );
+  }
+  const btn = document.querySelector("#toggle-base-layer");
+  if (btn) btn.textContent = streetVisible ? J().map_satellite : J().map_street;
+}
+
+function addTerrainSourceAndHillshade() {
+  if (!mapConfig.terrain || !boundaryMapInstance) return;
+  if (boundaryMapInstance.getSource("terrain-dem")) return;
+  boundaryMapInstance.addSource("terrain-dem", {
+    type: "raster-dem",
+    tiles: [mapConfig.terrain.tileUrl],
+    tileSize: 256,
+    encoding: mapConfig.terrain.encoding,
+    attribution: mapConfig.terrain.attribution,
+    maxzoom: mapConfig.terrain.maxZoom,
+  });
+  boundaryMapInstance.addLayer({
+    id: "terrain-hillshade",
+    type: "hillshade",
+    source: "terrain-dem",
+    layout: { visibility: "none" },
+    paint: {
+      "hillshade-shadow-color": "#000000",
+      "hillshade-highlight-color": "#ffffff",
+      "hillshade-exaggeration": 0.45,
+    },
+  });
+}
+
+function setTerrainEnabled(enabled) {
+  if (!boundaryMapInstance || !boundaryMapReady || !mapConfig.terrain) return;
+  terrainEnabled = enabled;
+  if (boundaryMapInstance.getLayer("terrain-hillshade")) {
+    boundaryMapInstance.setLayoutProperty(
+      "terrain-hillshade",
+      "visibility",
+      enabled ? "visible" : "none"
+    );
+  }
+  try {
+    boundaryMapInstance.setTerrain(enabled ? { source: "terrain-dem", exaggeration: 1.4 } : null);
+  } catch {
+    /* по-стара MapLibre без 3D terrain — hillshade пак работи */
+  }
+  if (!enabled) {
+    boundaryMapInstance.easeTo({ pitch: 0, bearing: 0, duration: 350 });
+  }
+  const btn = document.querySelector("#toggle-terrain");
+  if (btn) btn.classList.toggle("is-active", enabled);
+}
+
+function addWeatherSourcesAndLayers() {
+  if (!mapConfig.weather || !boundaryMapInstance) return;
+  for (const layer of mapConfig.weather.layers || []) {
+    const sourceId = `weather-${layer.id}`;
+    if (boundaryMapInstance.getSource(sourceId)) continue;
+    const tileUrl = resolveWeatherTileUrl(layer);
+    if (!tileUrl) continue;
+    boundaryMapInstance.addSource(sourceId, {
+      type: "raster",
+      tiles: [tileUrl],
+      tileSize: 256,
+      attribution: layer.attribution,
+    });
+    boundaryMapInstance.addLayer({
+      id: sourceId,
+      type: "raster",
+      source: sourceId,
+      layout: { visibility: "none" },
+      paint: { "raster-opacity": layer.opacity ?? 0.6 },
+    });
+  }
+}
+
+function resolveWeatherTileUrl(layer) {
+  if (layer.tileUrl) return layer.tileUrl;
+  if (layer.tileUrlTemplate && rainViewerCurrentTs) {
+    return layer.tileUrlTemplate.replace("{ts}", String(rainViewerCurrentTs));
+  }
+  return null;
+}
+
+function setWeatherLayerEnabled(layerId, enabled) {
+  if (!boundaryMapInstance || !boundaryMapReady) return;
+  const sourceId = `weather-${layerId}`;
+  const layerDef = mapConfig.weather?.layers?.find((l) => l.id === layerId);
+  if (!layerDef) return;
+  if (enabled) activeWeatherLayers.add(layerId);
+  else activeWeatherLayers.delete(layerId);
+
+  if (enabled && !boundaryMapInstance.getSource(sourceId)) {
+    const tileUrl = resolveWeatherTileUrl(layerDef);
+    if (!tileUrl) return;
+    boundaryMapInstance.addSource(sourceId, {
+      type: "raster",
+      tiles: [tileUrl],
+      tileSize: 256,
+      attribution: layerDef.attribution,
+    });
+    boundaryMapInstance.addLayer({
+      id: sourceId,
+      type: "raster",
+      source: sourceId,
+      paint: { "raster-opacity": layerDef.opacity ?? 0.6 },
+    });
+  } else if (boundaryMapInstance.getLayer(sourceId)) {
+    boundaryMapInstance.setLayoutProperty(
+      sourceId,
+      "visibility",
+      enabled ? "visible" : "none"
+    );
+  }
+  const btn = document.querySelector(`[data-weather-layer="${layerId}"]`);
+  if (btn) btn.classList.toggle("is-active", enabled);
+}
+
+async function startRainViewerRefresh() {
+  if (!mapConfig.weather || mapConfig.weather.provider !== "rainviewer") return;
+  await refreshRainViewerTimestamp();
+  const interval = Math.max(60, Number(mapConfig.weather.refreshSeconds || 300)) * 1000;
+  if (rainViewerTimer) clearInterval(rainViewerTimer);
+  rainViewerTimer = setInterval(refreshRainViewerTimestamp, interval);
+}
+
+async function refreshRainViewerTimestamp() {
+  try {
+    const res = await fetch(mapConfig.weather.timestampsApi, { cache: "no-store" });
+    if (!res.ok) return;
+    const data = await res.json();
+    const past = data?.radar?.past;
+    const latest = Array.isArray(past) && past.length ? past[past.length - 1].time : null;
+    if (!latest || latest === rainViewerCurrentTs) return;
+    rainViewerCurrentTs = latest;
+    for (const layer of mapConfig.weather.layers || []) {
+      if (!layer.tileUrlTemplate) continue;
+      const sourceId = `weather-${layer.id}`;
+      const newUrl = layer.tileUrlTemplate.replace("{ts}", String(rainViewerCurrentTs));
+      const source = boundaryMapInstance?.getSource(sourceId);
+      if (source && typeof source.setTiles === "function") {
+        source.setTiles([newUrl]);
+      }
+    }
+  } catch {
+    /* мрежова грешка — следващ refresh пробва пак */
+  }
+}
+
+function ensureMapToggleButtons() {
+  const actions = document.querySelector(".field-map-actions");
+  if (!actions) return;
+  const Lj = J();
+
+  if (mapConfig.satelliteTileUrl && !document.querySelector("#toggle-base-layer")) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.id = "toggle-base-layer";
+    btn.textContent = Lj.map_satellite;
+    btn.addEventListener("click", () => {
+      setBaseLayer(activeBaseLayer === "street" ? "satellite" : "street");
+    });
+    actions.prepend(btn);
+  }
+
+  if (mapConfig.terrain && !document.querySelector("#toggle-terrain")) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.id = "toggle-terrain";
+    btn.textContent = Lj.map_terrain;
+    btn.title = Lj.map_terrain_hint;
+    btn.addEventListener("click", () => setTerrainEnabled(!terrainEnabled));
+    actions.appendChild(btn);
+  }
+
+  if (mapConfig.weather?.layers?.length) {
+    for (const layer of mapConfig.weather.layers) {
+      const selector = `[data-weather-layer="${layer.id}"]`;
+      if (document.querySelector(selector)) continue;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.dataset.weatherLayer = layer.id;
+      btn.textContent = Lj.weatherLayerLabels?.[layer.id] || layer.id;
+      btn.addEventListener("click", () => {
+        setWeatherLayerEnabled(layer.id, !activeWeatherLayers.has(layer.id));
+      });
+      actions.appendChild(btn);
+    }
+  }
 }
 
 function renderBoundaryMap() {
@@ -1123,8 +1401,10 @@ copyGeojsonButton?.addEventListener("click", async () => {
   }
 });
 
-initBoundaryMapLibre();
-renderBoundaryMap();
+loadMapConfig().then(() => {
+  initBoundaryMapLibre();
+  renderBoundaryMap();
+});
 
 authForm?.addEventListener("click", (event) => {
   const button = event.target.closest("[data-auth-action]");
@@ -1243,12 +1523,64 @@ function initCookieBanner() {
 
 initCookieBanner();
 
+let heroInsightTimer = null;
+let heroInsightIndex = 0;
+
+function paintHeroInsight(scenario, panel) {
+  if (!scenario || !panel) return;
+  const slots = scenario.slots || [];
+  for (let i = 0; i < 3; i++) {
+    const labelEl = panel.querySelector(`[data-insight-label="${i}"]`);
+    const valueEl = panel.querySelector(`[data-insight-value="${i}"]`);
+    const slot = slots[i];
+    if (labelEl) labelEl.textContent = slot ? slot.label : "";
+    if (valueEl) valueEl.textContent = slot ? slot.value : "";
+  }
+}
+
+function cycleHeroInsights() {
+  const panel = document.getElementById("hero-insights");
+  if (!panel) return;
+  const scenarios = J().heroInsightScenarios;
+  if (!Array.isArray(scenarios) || !scenarios.length) return;
+
+  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  const next = scenarios[heroInsightIndex % scenarios.length];
+  heroInsightIndex += 1;
+
+  if (reduceMotion) {
+    paintHeroInsight(next, panel);
+    return;
+  }
+
+  panel.classList.add("is-fading");
+  window.setTimeout(() => {
+    paintHeroInsight(next, panel);
+    panel.classList.remove("is-fading");
+  }, 450);
+}
+
+function initHeroInsights() {
+  const panel = document.getElementById("hero-insights");
+  if (!panel) return;
+  heroInsightIndex = 0;
+  const scenarios = J().heroInsightScenarios;
+  if (!Array.isArray(scenarios) || !scenarios.length) return;
+  paintHeroInsight(scenarios[0], panel);
+  heroInsightIndex = 1;
+  if (heroInsightTimer) clearInterval(heroInsightTimer);
+  heroInsightTimer = window.setInterval(cycleHeroInsights, 5000);
+}
+
+initHeroInsights();
+
 window.addEventListener("sima-lang-change", () => {
   updateAdvisor();
   updateAuthUi();
   renderHistory();
   renderPortal();
   renderBoundaryMap();
+  initHeroInsights();
   const rep =
     currentReportId &&
     (loadHistory().find((r) => r.id === currentReportId) ||

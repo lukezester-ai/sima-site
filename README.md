@@ -32,11 +32,27 @@ npm run build:logo
 
 ## LLM за Field Watch
 
-Вижте **[LLM-CONFIG.md](./LLM-CONFIG.md)** (вкл. **Mistral**, OpenAI-съвместими, Ollama). Примерни променливи: **[.env.example](./.env.example)** (задайте ги в средата си — Node не зарежда `.env` автоматично без допълнителен пакет).
+Вижте **[LLM-CONFIG.md](./LLM-CONFIG.md)** (вкл. **Mistral**, OpenAI-съвместими, Ollama). Примерни променливи: **[.env.example](./.env.example)**.
+
+При локално стартиране сървърът зарежда автоматично `.env` и `.env.local` от корена на проекта. На Vercel използвайте Environment Variables в Dashboard.
 
 ## RAG
 
 Field Watch подава към LLM и **извлечени откъси** от индекс `ragChunks`. Индексирайте от портала (отметка „Индексирай за RAG“) или през `POST /api/rag/ingest`. За семантично търсене са нужни embeddings — виж секцията RAG в **LLM-CONFIG.md**.
+
+## Карта в портала
+
+Картата в раздел „Полета“ → „Очертаване на граница“ ползва **MapLibre GL JS** (open source) и по подразбиране OSM tile сървър — **без ключ**, само за разработка. За production OSM е неподходящ заради [Tile Usage Policy](https://operations.osmfoundation.org/policies/tiles/) — задайте свой провайдър през env (виж [.env.example](./.env.example)):
+
+| Провайдър | Free план | Пример URL |
+|---|---|---|
+| MapTiler | 100k заявки/месец | `https://api.maptiler.com/maps/streets-v2/256/{z}/{x}/{y}.png?key=KEY` |
+| Mapbox | 50k MAU | `https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token=TOKEN` |
+| Stadia Maps | non-commercial безплатно | `https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}.png?api_key=KEY` |
+
+API ключът отива в браузъра (стандартно за client-side карти) — заключете го по domain в dashboard-а на доставчика.
+
+Ако зададете `MAP_SATELLITE_TILE_URL`, в toolbar-а на картата автоматично се появява бутон **„Сателит / Улици“**.
 
 ## API за здраве проверки
 

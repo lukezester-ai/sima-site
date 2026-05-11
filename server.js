@@ -1,13 +1,45 @@
 import { createServer } from "node:http";
 import { appendFile, readFile, writeFile, mkdir, stat } from "node:fs/promises";
-import { createReadStream } from "node:fs";
+import { createReadStream, readFileSync, existsSync } from "node:fs";
 import { extname, join, normalize, relative } from "node:path";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomBytes, pbkdf2Sync } from "node:crypto";
 
-const port = Number(process.env.PORT || 3001);
 const root = dirname(fileURLToPath(import.meta.url));
+
+/** Минимален .env loader — без външна зависимост. Не презаписва вече зададени променливи. */
+function loadDotEnvFile(path) {
+  if (!existsSync(path)) return;
+  try {
+    const raw = readFileSync(path, "utf-8");
+    for (const line of raw.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const eq = trimmed.indexOf("=");
+      if (eq <= 0) continue;
+      const key = trimmed.slice(0, eq).trim();
+      if (!/^[A-Z_][A-Z0-9_]*$/i.test(key) || process.env[key] !== undefined) continue;
+      let value = trimmed.slice(eq + 1).trim();
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
+        value = value.slice(1, -1);
+      }
+      process.env[key] = value;
+    }
+  } catch (error) {
+    console.warn(`[env] не успях да заредя ${path}: ${error.message}`);
+  }
+}
+
+if (!process.env.VERCEL) {
+  loadDotEnvFile(join(root, ".env"));
+  loadDotEnvFile(join(root, ".env.local"));
+}
+
+const port = Number(process.env.PORT || 3001);
 const isVercel = Boolean(process.env.VERCEL);
 /** Локално: data/ и uploads/. На Vercel: само /tmp (данните не са постоянни между деплой и скалиране). */
 const dataDir = isVercel ? join("/tmp", "sima-data") : join(root, "data");
@@ -35,13 +67,26 @@ const mimeTypes = {
 };
 
 function withSecurityHeaders(headers = {}) {
-  return {
+  const base = {
     "x-content-type-options": "nosniff",
     "referrer-policy": "strict-origin-when-cross-origin",
     "x-frame-options": "SAMEORIGIN",
     "permissions-policy": "camera=(), microphone=(), geolocation=()",
-    ...headers,
   };
+  if (process.env.PUBLIC_HTTPS === "1") {
+    base["strict-transport-security"] = "max-age=15552000; includeSubDomains";
+  }
+  return { ...base, ...headers };
+}
+
+/** Cache-Control стойности за статика (по тип). HTML и manifest без кеш. */
+function cacheControlFor(filePath) {
+  const ext = extname(filePath).toLowerCase();
+  if (ext === ".html" || ext === ".webmanifest") return "no-cache";
+  if ([".css", ".js", ".png", ".jpg", ".jpeg", ".webp", ".svg", ".ico"].includes(ext)) {
+    return "public, max-age=86400, must-revalidate";
+  }
+  return "public, max-age=300";
 }
 
 function clientIp(req) {
@@ -79,6 +124,117 @@ function isBlockedOutboundIpv4(host) {
   if (a === 100 && b >= 64 && b <= 127) return true;
   if (a === 169 && p[1] === 254) return true;
   return false;
+}
+
+/**
+ * Публична конфигурация за картата (отива към браузъра).
+ * НЕ включва LLM ключове, а tile URL обикновено съдържа API ключ — той е
+ * заключен по domain в dashboard-а на доставчика (MapTiler/Mapbox/Stadia/OWM).
+ */
+function publicMapConfig() {
+  const tileUrl =
+    (process.env.MAP_TILE_URL || "").trim() ||
+    "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+  const tileAttribution =
+    (process.env.MAP_TILE_ATTRIBUTION || "").trim() ||
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+  const maxZoom = Math.max(1, Math.min(24, Number(process.env.MAP_MAX_ZOOM || 19)));
+
+  const satelliteTileUrl = (process.env.MAP_SATELLITE_TILE_URL || "").trim() || null;
+  const satelliteAttribution = satelliteTileUrl
+    ? (process.env.MAP_SATELLITE_ATTRIBUTION || "").trim() || tileAttribution
+    : null;
+  const satelliteMaxZoom = satelliteTileUrl
+    ? Math.max(1, Math.min(24, Number(process.env.MAP_SATELLITE_MAX_ZOOM || 19)))
+    : null;
+
+  const terrainTileUrl = (process.env.MAP_TERRAIN_TILE_URL || "").trim() || null;
+  const terrain = terrainTileUrl
+    ? {
+        tileUrl: terrainTileUrl,
+        encoding: ((process.env.MAP_TERRAIN_ENCODING || "terrarium").trim().toLowerCase()) === "mapbox"
+          ? "mapbox"
+          : "terrarium",
+        attribution:
+          (process.env.MAP_TERRAIN_ATTRIBUTION || "").trim() ||
+          "Terrain tiles via configured provider",
+        maxZoom: Math.max(1, Math.min(20, Number(process.env.MAP_TERRAIN_MAX_ZOOM || 15))),
+      }
+    : null;
+
+  return {
+    tileUrl,
+    tileAttribution,
+    maxZoom,
+    satelliteTileUrl,
+    satelliteAttribution,
+    satelliteMaxZoom,
+    terrain,
+    weather: buildWeatherMapConfig(),
+  };
+}
+
+/**
+ * Подготвя метео radar overlay конфигурация за фронтенда.
+ * - openweathermap: 5 слоя (precipitation/clouds/temp/wind/pressure), API ключ от OPENWEATHERMAP_API_KEY.
+ * - rainviewer: само радар, без ключ; клиентът дърпа timestamp от RainViewer API.
+ * - none: изключено.
+ */
+function buildWeatherMapConfig() {
+  const explicit = (process.env.WEATHER_PROVIDER || "").trim().toLowerCase();
+  const owmKey = (process.env.OPENWEATHERMAP_API_KEY || "").trim();
+  let provider = explicit;
+  if (!provider) provider = owmKey ? "openweathermap" : "none";
+  if (provider === "none" || provider === "off" || provider === "disabled") return null;
+
+  const requested = (process.env.WEATHER_LAYERS || "")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (provider === "openweathermap") {
+    if (!owmKey) return null;
+    const owmAttribution = '&copy; <a href="https://openweathermap.org/">OpenWeatherMap</a>';
+    const definitions = {
+      precipitation: { id: "precipitation", endpoint: "precipitation_new" },
+      clouds: { id: "clouds", endpoint: "clouds_new" },
+      temp: { id: "temp", endpoint: "temp_new" },
+      wind: { id: "wind", endpoint: "wind_new" },
+      pressure: { id: "pressure", endpoint: "pressure_new" },
+    };
+    const ids = requested.length ? requested : ["precipitation", "clouds"];
+    const layers = ids
+      .map((id) => definitions[id])
+      .filter(Boolean)
+      .map((def) => ({
+        id: def.id,
+        tileUrl: `https://tile.openweathermap.org/map/${def.endpoint}/{z}/{x}/{y}.png?appid=${owmKey}`,
+        attribution: owmAttribution,
+        opacity: 0.6,
+        refreshSeconds: 0,
+      }));
+    if (!layers.length) return null;
+    return { provider, layers };
+  }
+
+  if (provider === "rainviewer") {
+    return {
+      provider,
+      timestampsApi: "https://api.rainviewer.com/public/weather-maps.json",
+      refreshSeconds: 300,
+      layers: [
+        {
+          id: "precipitation",
+          tileUrlTemplate:
+            "https://tilecache.rainviewer.com/v2/radar/{ts}/256/{z}/{x}/{y}/2/1_1.png",
+          attribution: '&copy; <a href="https://www.rainviewer.com/">RainViewer</a>',
+          opacity: 0.7,
+        },
+      ],
+    };
+  }
+
+  return null;
 }
 
 /** Намалява SSRF при изтегляне на URL от името на потребителя. */
@@ -192,11 +348,39 @@ function verifyPassword(password, stored) {
   return hashPassword(password, salt).split(":")[1] === hash;
 }
 
-async function readJson(req) {
+/** Защита срещу DoS чрез голямо тяло на заявката. */
+const MAX_JSON_BYTES = Math.max(1024, Number(process.env.MAX_JSON_BYTES || 1_000_000));
+const MAX_MULTIPART_BYTES = Math.max(
+  16 * 1024,
+  Number(process.env.MAX_UPLOAD_BYTES || 25 * 1024 * 1024)
+);
+
+class PayloadTooLargeError extends Error {
+  constructor(limit) {
+    super(`Заявката надвишава позволения размер от ${limit} байта.`);
+    this.name = "PayloadTooLargeError";
+    this.statusCode = 413;
+  }
+}
+
+async function readBodyBuffer(req, maxBytes) {
   const chunks = [];
-  for await (const chunk of req) chunks.push(chunk);
-  const body = Buffer.concat(chunks).toString("utf-8");
-  return body ? JSON.parse(body) : {};
+  let total = 0;
+  for await (const chunk of req) {
+    total += chunk.length;
+    if (total > maxBytes) {
+      throw new PayloadTooLargeError(maxBytes);
+    }
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks);
+}
+
+async function readJson(req) {
+  const buffer = await readBodyBuffer(req, MAX_JSON_BYTES);
+  if (!buffer.length) return {};
+  const body = buffer.toString("utf-8");
+  return JSON.parse(body);
 }
 
 function getToken(req) {
@@ -257,9 +441,8 @@ function parseMultipart(buffer, contentType) {
 }
 
 async function readMultipart(req) {
-  const chunks = [];
-  for await (const chunk of req) chunks.push(chunk);
-  return parseMultipart(Buffer.concat(chunks), req.headers["content-type"] || "");
+  const buffer = await readBodyBuffer(req, MAX_MULTIPART_BYTES);
+  return parseMultipart(buffer, req.headers["content-type"] || "");
 }
 
 function strategyFor(concern) {
@@ -398,7 +581,7 @@ function llmConfig() {
   const model =
     process.env.LLM_MODEL ||
     process.env.OPENAI_MODEL ||
-    (provider === "ollama" ? "llama3.2" : provider === "mistral" ? "mistral-small-latest" : "gpt-5.4-mini");
+    (provider === "ollama" ? "llama3.2" : provider === "mistral" ? "mistral-small-latest" : "gpt-4o-mini");
 
   if (provider === "demo" || (provider !== "ollama" && !apiKey)) {
     return { provider: "demo", baseUrl: baseUrl.replace(/\/$/, ""), apiKey: "", model };
@@ -907,6 +1090,10 @@ async function handleApi(req, res, pathname) {
     return json(res, 200, { ok: true, service: "sima-site" });
   }
 
+  if (pathname === "/api/config" && req.method === "GET") {
+    return json(res, 200, { map: publicMapConfig() });
+  }
+
   if (pathname === "/api/fields" && req.method === "GET") {
     const auth = await requireUser(req, res);
     if (!auth) return;
@@ -1228,11 +1415,13 @@ async function serveStatic(req, res, pathname) {
   try {
     const fileStat = await stat(filePath);
     if (!fileStat.isFile()) throw new Error("Not a file");
-    res.writeHead(200, {
-      ...withSecurityHeaders({
+    res.writeHead(
+      200,
+      withSecurityHeaders({
         "content-type": mimeTypes[extname(filePath).toLowerCase()] || "application/octet-stream",
-      }),
-    });
+        "cache-control": cacheControlFor(filePath),
+      })
+    );
     createReadStream(filePath).pipe(res);
   } catch {
     res.writeHead(404, withSecurityHeaders({ "content-type": "text/plain; charset=utf-8" }));
@@ -1280,6 +1469,12 @@ async function mainHttpHandler(req, res) {
     }
     await serveStatic(req, res, pathname);
   } catch (error) {
+    if (error instanceof PayloadTooLargeError) {
+      return json(res, 413, { error: error.message });
+    }
+    if (error instanceof SyntaxError) {
+      return json(res, 400, { error: "Невалиден JSON в тялото на заявката." });
+    }
     console.error(error);
     json(res, 500, { error: "Вътрешна грешка в сървъра." });
   }
@@ -1289,7 +1484,13 @@ const server = createServer(mainHttpHandler);
 
 if (!isVercel) {
   server.on("error", async (error) => {
-    console.error("SIMA server listen error:", error.message || error);
+    if (error.code === "EADDRINUSE") {
+      console.error(
+        `SIMA: порт ${port} вече е зает. Спрете другия процес или задайте PORT=<свободен_порт>.`
+      );
+    } else {
+      console.error("SIMA server listen error:", error.message || error);
+    }
     try {
       await appendFile(serverErrorLogPath, `${new Date().toISOString()} ${error.stack}\n`);
     } catch {
@@ -1300,6 +1501,32 @@ if (!isVercel) {
 
   server.listen(port, () => {
     console.log(`SIMA running on http://localhost:${port}`);
+  });
+
+  let shuttingDown = false;
+  function gracefulShutdown(signal) {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log(`SIMA: ${signal} получен — спирам приема на нови връзки…`);
+    server.close((err) => {
+      if (err) {
+        console.error("SIMA: грешка при затваряне:", err.message || err);
+        process.exit(1);
+      }
+      console.log("SIMA: готово, чао.");
+      process.exit(0);
+    });
+    setTimeout(() => {
+      console.warn("SIMA: принудително изключване след 10s.");
+      process.exit(1);
+    }, 10_000).unref();
+  }
+
+  process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+  process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+
+  process.on("unhandledRejection", (reason) => {
+    console.error("SIMA: unhandledRejection:", reason);
   });
 }
 

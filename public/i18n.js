@@ -586,6 +586,47 @@
       map_need: (left) =>
         `Добавете още ${left} точки по картата за затворена граница (поне три върха).`,
       map_point_title: (i) => `Точка ${i}`,
+      map_satellite: "Сателит",
+      map_street: "Улици",
+      map_terrain: "Терен",
+      map_terrain_hint: "Сянка на релефа + 3D наклон (десен бутон + drag).",
+      weatherLayerLabels: {
+        precipitation: "Дъжд",
+        clouds: "Облаци",
+        temp: "Темп.",
+        wind: "Вятър",
+        pressure: "Налягане",
+      },
+      heroInsightScenarios: [
+        {
+          slots: [
+            { label: "Култура · Блок 12", value: "Пшеница" },
+            { label: "Индекс на растеж", value: "87% · стабилен" },
+            { label: "Препоръка", value: "Поливане след 18:00" },
+          ],
+        },
+        {
+          slots: [
+            { label: "Култура · Блок 7", value: "Слънчоглед" },
+            { label: "Риск от стрес", value: "Нисък" },
+            { label: "Прогноза", value: "Чисто 3 дни" },
+          ],
+        },
+        {
+          slots: [
+            { label: "Култура · Блок 4", value: "Царевица" },
+            { label: "Зона за внимание", value: "Северна страна" },
+            { label: "Препоръка", value: "Оглед след валеж" },
+          ],
+        },
+        {
+          slots: [
+            { label: "Култура · Блок 18", value: "Ябълки" },
+            { label: "Риск от болест", value: "Среден" },
+            { label: "Препоръка", value: "Готовност за обработка" },
+          ],
+        },
+      ],
       contact_ok: "Благодарим — получихме запитването ви и ще се свържем скоро.",
       contact_fail: "Неуспешно изпращане. Опитайте отново.",
       weather_loading: "Зареждам метео данни...",
@@ -758,6 +799,47 @@
       map_need: (left) =>
         `Add ${left} more map click(s) for a closed boundary (three vertices minimum).`,
       map_point_title: (i) => `Point ${i}`,
+      map_satellite: "Satellite",
+      map_street: "Streets",
+      map_terrain: "Terrain",
+      map_terrain_hint: "Hillshade + 3D pitch (right-click drag).",
+      weatherLayerLabels: {
+        precipitation: "Rain",
+        clouds: "Clouds",
+        temp: "Temp",
+        wind: "Wind",
+        pressure: "Pressure",
+      },
+      heroInsightScenarios: [
+        {
+          slots: [
+            { label: "Crop · Block 12", value: "Winter wheat" },
+            { label: "Growth index", value: "87% · stable" },
+            { label: "Recommendation", value: "Irrigate after 6 PM" },
+          ],
+        },
+        {
+          slots: [
+            { label: "Crop · Block 7", value: "Sunflower" },
+            { label: "Stress risk", value: "Low" },
+            { label: "Forecast", value: "Clear for 3 days" },
+          ],
+        },
+        {
+          slots: [
+            { label: "Crop · Block 4", value: "Corn" },
+            { label: "Watch zone", value: "Northern edge" },
+            { label: "Recommendation", value: "Inspect after rain" },
+          ],
+        },
+        {
+          slots: [
+            { label: "Crop · Block 18", value: "Apple orchard" },
+            { label: "Disease risk", value: "Medium" },
+            { label: "Recommendation", value: "Prep treatment crew" },
+          ],
+        },
+      ],
       contact_ok: "Thank you — we received your message and will reply soon.",
       contact_fail: "Could not send. Please try again.",
       weather_loading: "Loading weather…",
