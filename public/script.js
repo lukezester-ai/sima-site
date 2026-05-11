@@ -642,13 +642,16 @@ function addWeatherSourcesAndLayers() {
     if (typeof layer.minzoom === "number") sourceSpec.minzoom = layer.minzoom;
     if (typeof layer.maxzoom === "number") sourceSpec.maxzoom = layer.maxzoom;
     boundaryMapInstance.addSource(sourceId, sourceSpec);
-    boundaryMapInstance.addLayer({
+    const layerSpec = {
       id: sourceId,
       type: "raster",
       source: sourceId,
       layout: { visibility: "none" },
       paint: { "raster-opacity": layer.opacity ?? 0.6 },
-    });
+    };
+    if (typeof layer.minzoom === "number") layerSpec.minzoom = layer.minzoom;
+    if (typeof layer.maxzoom === "number") layerSpec.maxzoom = layer.maxzoom + 1;
+    boundaryMapInstance.addLayer(layerSpec);
   }
 }
 
@@ -680,12 +683,15 @@ function setWeatherLayerEnabled(layerId, enabled) {
     if (typeof layerDef.minzoom === "number") sourceSpec.minzoom = layerDef.minzoom;
     if (typeof layerDef.maxzoom === "number") sourceSpec.maxzoom = layerDef.maxzoom;
     boundaryMapInstance.addSource(sourceId, sourceSpec);
-    boundaryMapInstance.addLayer({
+    const layerSpec = {
       id: sourceId,
       type: "raster",
       source: sourceId,
       paint: { "raster-opacity": layerDef.opacity ?? 0.6 },
-    });
+    };
+    if (typeof layerDef.minzoom === "number") layerSpec.minzoom = layerDef.minzoom;
+    if (typeof layerDef.maxzoom === "number") layerSpec.maxzoom = layerDef.maxzoom + 1;
+    boundaryMapInstance.addLayer(layerSpec);
   } else if (boundaryMapInstance.getLayer(sourceId)) {
     boundaryMapInstance.setLayoutProperty(
       sourceId,
