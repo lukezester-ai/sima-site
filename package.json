@@ -10,8 +10,7 @@
     "start": "node server.js",
     "dev": "node server.js",
     "build:logo": "node scripts/rasterize-logo.mjs",
-    "seed:db": "node scripts/copy-seed-db.mjs",
-    "deploy": "node scripts/deploy.mjs"
+    "seed:db": "node scripts/copy-seed-db.mjs"
   },
   "devDependencies": {
     "sharp": "^0.34.5"

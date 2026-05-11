@@ -62,31 +62,23 @@ API ключът отива в браузъра (стандартно за clien
 
 `data/db.json` е в **`.gitignore`** — не качвайте реални потребители/сесии. Ползвайте `data/db.seed.json` като шаблон.
 
-## Качване в GitHub + Vercel (`npm run deploy`)
+## Качване в GitHub
 
-Проектът е свързан с две GitHub repo-та:
-
-- **origin** → `roxsonltd-droid/SIMA-site` (пълна git история, primary source of truth)
-- **vercel** → `lukezester-ai/sima-site` (репото, което **AgriNexus' projects** Vercel сметка наблюдава)
-
-След като направиш local commit на `main`, един единствен команден ред качва и на двете места и стартира Vercel auto-deploy:
+Проектът има **един** remote — `roxsonltd-droid/SIMA-site` (single source of truth).
 
 ```powershell
-npm run deploy
+git add -A
+git commit -m "опиши промяната"
+git push
 ```
 
-Скриптът `scripts/deploy.mjs`:
-
-1. Push към `origin` (нормален fast-forward)
-2. Build на чист sync commit върху `vercel/main` (без force push) и push към `vercel`
-3. Vercel засича push-а и започва build за production
-
-Първоначална настройка на remote-ите (еднократно):
+Първоначална настройка на remote-а (еднократно, ако клонираш отначало):
 
 ```powershell
 git remote add origin https://github.com/roxsonltd-droid/SIMA-site.git
-git remote add vercel https://github.com/lukezester-ai/sima-site.git
 ```
+
+За Vercel deploy виж секцията **Вариант C — Vercel** по-долу.
 
 ## Деплой на сървър
 
