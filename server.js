@@ -226,9 +226,11 @@ function buildWeatherMapConfig() {
         {
           id: "precipitation",
           tileUrlTemplate:
-            "https://tilecache.rainviewer.com/v2/radar/{ts}/256/{z}/{x}/{y}/2/1_1.png",
+            "https://tilecache.rainviewer.com{path}/256/{z}/{x}/{y}/2/1_1.png",
           attribution: '&copy; <a href="https://www.rainviewer.com/">RainViewer</a>',
           opacity: 0.7,
+          minzoom: 0,
+          maxzoom: 10,
         },
       ],
     };

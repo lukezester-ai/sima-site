@@ -85,7 +85,7 @@ let activeBaseLayer = "street";
 let terrainEnabled = false;
 const activeWeatherLayers = new Set();
 let rainViewerTimer = null;
-let rainViewerCurrentTs = null;
+let rainViewerCurrentPath = null;
 
 async function loadMapConfig() {
   try {
@@ -633,12 +633,15 @@ function addWeatherSourcesAndLayers() {
     if (boundaryMapInstance.getSource(sourceId)) continue;
     const tileUrl = resolveWeatherTileUrl(layer);
     if (!tileUrl) continue;
-    boundaryMapInstance.addSource(sourceId, {
+    const sourceSpec = {
       type: "raster",
       tiles: [tileUrl],
       tileSize: 256,
       attribution: layer.attribution,
-    });
+    };
+    if (typeof layer.minzoom === "number") sourceSpec.minzoom = layer.minzoom;
+    if (typeof layer.maxzoom === "number") sourceSpec.maxzoom = layer.maxzoom;
+    boundaryMapInstance.addSource(sourceId, sourceSpec);
     boundaryMapInstance.addLayer({
       id: sourceId,
       type: "raster",
@@ -651,8 +654,8 @@ function addWeatherSourcesAndLayers() {
 
 function resolveWeatherTileUrl(layer) {
   if (layer.tileUrl) return layer.tileUrl;
-  if (layer.tileUrlTemplate && rainViewerCurrentTs) {
-    return layer.tileUrlTemplate.replace("{ts}", String(rainViewerCurrentTs));
+  if (layer.tileUrlTemplate && rainViewerCurrentPath) {
+    return layer.tileUrlTemplate.replace("{path}", String(rainViewerCurrentPath));
   }
   return null;
 }
@@ -668,12 +671,15 @@ function setWeatherLayerEnabled(layerId, enabled) {
   if (enabled && !boundaryMapInstance.getSource(sourceId)) {
     const tileUrl = resolveWeatherTileUrl(layerDef);
     if (!tileUrl) return;
-    boundaryMapInstance.addSource(sourceId, {
+    const sourceSpec = {
       type: "raster",
       tiles: [tileUrl],
       tileSize: 256,
       attribution: layerDef.attribution,
-    });
+    };
+    if (typeof layerDef.minzoom === "number") sourceSpec.minzoom = layerDef.minzoom;
+    if (typeof layerDef.maxzoom === "number") sourceSpec.maxzoom = layerDef.maxzoom;
+    boundaryMapInstance.addSource(sourceId, sourceSpec);
     boundaryMapInstance.addLayer({
       id: sourceId,
       type: "raster",
@@ -705,13 +711,13 @@ async function refreshRainViewerTimestamp() {
     if (!res.ok) return;
     const data = await res.json();
     const past = data?.radar?.past;
-    const latest = Array.isArray(past) && past.length ? past[past.length - 1].time : null;
-    if (!latest || latest === rainViewerCurrentTs) return;
-    rainViewerCurrentTs = latest;
+    const latest = Array.isArray(past) && past.length ? past[past.length - 1].path : null;
+    if (!latest || latest === rainViewerCurrentPath) return;
+    rainViewerCurrentPath = latest;
     for (const layer of mapConfig.weather.layers || []) {
       if (!layer.tileUrlTemplate) continue;
       const sourceId = `weather-${layer.id}`;
-      const newUrl = layer.tileUrlTemplate.replace("{ts}", String(rainViewerCurrentTs));
+      const newUrl = layer.tileUrlTemplate.replace("{path}", String(rainViewerCurrentPath));
       const source = boundaryMapInstance?.getSource(sourceId);
       if (source && typeof source.setTiles === "function") {
         source.setTiles([newUrl]);
