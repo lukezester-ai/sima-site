@@ -9,8 +9,14 @@
       content="SIMA внедрява AI технологии в земеделието: наблюдение на полета, анализи, автоматизация и управление на стопанства."
     />
     <meta name="theme-color" content="#063d2a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="SIMA" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" type="image/png" href="/assets/sima-logo.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -388,6 +394,10 @@
               <strong id="auth-status" data-i18n="auth_local">Локален режим</strong>
               <p id="auth-helper" data-i18n="auth_helper">Влезте, за да пазите данните в backend.</p>
               <form id="auth-form">
+                <label class="hp-field" aria-hidden="true">
+                  <span>Company site</span>
+                  <input type="text" name="hp" tabindex="-1" autocomplete="off" value="" />
+                </label>
                 <input type="text" name="name" data-i18n-placeholder="ph_name" placeholder="Име" />
                 <input type="email" name="email" data-i18n-placeholder="ph_email" placeholder="Имейл" />
                 <input type="password" name="password" data-i18n-placeholder="ph_pass" placeholder="Парола" />
@@ -724,6 +734,10 @@
           </p>
         </div>
         <form class="contact-form" id="contact-form">
+          <label class="hp-field" aria-hidden="true">
+            <span>Website</span>
+            <input type="text" name="hp" tabindex="-1" autocomplete="off" value="" />
+          </label>
           <label>
             <span data-i18n="lbl_contact_name">Име</span>
             <input type="text" name="name" data-i18n-placeholder="ph_contact_name" placeholder="Вашето име" />
@@ -762,23 +776,10 @@
       <p class="footer-credit" data-i18n="footer_credit_html" data-i18n-html="1"></p>
     </footer>
 
-    <div
-      id="cookie-banner"
-      class="cookie-banner"
-      role="dialog"
-      data-i18n-aria="cookie_aria"
-      hidden
-    >
-      <p data-i18n="cookie_text_html" data-i18n-html="1">
-        Ползваме само технически необходими механизми за сайта и при нужда локално съхранение в браузъра за демо и портала.
-        С „Разбирам“ потвърждавате запознаването си с <a href="#privacy">политиката за поверителност</a>.
-      </p>
-      <button type="button" class="button primary cookie-accept" data-cookie-accept data-i18n="cookie_ok">
-        Разбирам
-      </button>
-    </div>
+    <div id="sima-cookie-root"></div>
     <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.min.js" crossorigin="anonymous"></script>
     <script src="i18n.js"></script>
+    <script type="module" src="/react-dist/react-main.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

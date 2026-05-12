@@ -1,10 +1,16 @@
 node_modules/
+public/react-dist/
 .env
 .env.local
 uploads/
 *.log
 .DS_Store
 Thumbs.db
+
+# Gradle / Android Studio (ако има native wrapper в корена)
+.gradle/
+.idea/
+local.properties
 
 # Локална база и сесии — не качвайте в git (ползвайте seed при нужда)
 data/db.json

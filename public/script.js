@@ -51,6 +51,10 @@ const authStatus = document.querySelector("#auth-status");
 const authHelper = document.querySelector("#auth-helper");
 const logoutButton = document.querySelector("#logout-button");
 
+/** Timestamp за anti-bot проверка на сървъра (минимално време до submit). */
+const contactFormOpenedAt = form ? Date.now() : 0;
+const authFormOpenedAt = authForm ? Date.now() : 0;
+
 /** Единствен публичен контакт (съвпада с privacy/footer/mailto fallback). */
 const SIMA_CONTACT_EMAIL = "info@agrinexus.eu";
 
@@ -1434,6 +1438,8 @@ authForm?.addEventListener("submit", async (event) => {
         name: data.get("name")?.toString().trim(),
         email: data.get("email")?.toString().trim(),
         password: data.get("password")?.toString(),
+        hp: data.get("hp")?.toString() ?? "",
+        formOpenedAt: authFormOpenedAt,
       }),
     });
     localStorage.setItem(tokenKey, result.token);
@@ -1518,22 +1524,6 @@ function initNavMore() {
 }
 
 initNavMore();
-
-function initCookieBanner() {
-  const banner = document.getElementById("cookie-banner");
-  if (!banner) return;
-  if (localStorage.getItem("sima-cookie-consent") === "1") {
-    banner.hidden = true;
-    return;
-  }
-  banner.hidden = false;
-  banner.querySelector("[data-cookie-accept]")?.addEventListener("click", () => {
-    localStorage.setItem("sima-cookie-consent", "1");
-    banner.hidden = true;
-  });
-}
-
-initCookieBanner();
 
 let heroInsightTimer = null;
 let heroInsightIndex = 0;
@@ -1630,7 +1620,13 @@ form?.addEventListener("submit", async (event) => {
     const res = await fetch("/api/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, message }),
+      body: JSON.stringify({
+        name,
+        email,
+        message,
+        hp: data.get("hp")?.toString() ?? "",
+        formOpenedAt: contactFormOpenedAt,
+      }),
     });
     const payload = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -1647,3 +1643,11 @@ form?.addEventListener("submit", async (event) => {
     window.location.href = `mailto:${SIMA_CONTACT_EMAIL}?subject=${subject}&body=${body}`;
   }
 });
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {
+      /* PWA инсталация може да е недостъпна без HTTPS или при грешка в SW */
+    });
+  });
+}

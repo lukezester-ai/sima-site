@@ -1,7 +1,7 @@
 import { createServer } from "node:http";
 import { appendFile, readFile, writeFile, mkdir, stat } from "node:fs/promises";
 import { createReadStream, readFileSync, existsSync } from "node:fs";
-import { extname, join, normalize, relative } from "node:path";
+import { basename, extname, join, normalize, relative } from "node:path";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomBytes, pbkdf2Sync } from "node:crypto";
@@ -131,6 +131,7 @@ function withSecurityHeaders(headers = {}) {
 function cacheControlFor(filePath) {
   const ext = extname(filePath).toLowerCase();
   if (ext === ".html" || ext === ".webmanifest") return "no-cache";
+  if (basename(filePath) === "sw.js") return "no-cache";
   if ([".css", ".js", ".png", ".jpg", ".jpeg", ".webp", ".svg", ".ico"].includes(ext)) {
     return "public, max-age=86400, must-revalidate";
   }
@@ -157,6 +158,71 @@ function rateLimitAllow(ip, bucket, max = 40, windowMs = 15 * 60 * 1000) {
   }
   b.count += 1;
   return b.count <= max;
+}
+
+/** Разрешени Origin-и за публични POST от браузъра (срещу директни bot заявки без сайт). */
+function collectAllowedOrigins(req) {
+  const set = new Set();
+  const hostHeader = String(req.headers.host || "")
+    .trim()
+    .toLowerCase();
+  /** Пълен Host (вкл. порт), за да съвпада с Origin/Referer при dev (напр. localhost:3001). */
+  if (hostHeader) {
+    set.add(`https://${hostHeader}`);
+    set.add(`http://${hostHeader}`);
+  }
+  const pub = (process.env.PUBLIC_ORIGIN || "").trim().replace(/\/$/, "").toLowerCase();
+  if (pub) set.add(pub);
+  for (const raw of String(process.env.SIMA_ALLOWED_ORIGINS || "").split(",")) {
+    const p = raw.trim().replace(/\/$/, "").toLowerCase();
+    if (p) set.add(p);
+  }
+  return set;
+}
+
+function trustedBrowserOrigin(req) {
+  if (process.env.SIMA_RELAX_BROWSER_ORIGIN === "1") return true;
+  const allowed = collectAllowedOrigins(req);
+  if (allowed.size === 0) return false;
+  const origin = String(req.headers.origin || "")
+    .trim()
+    .toLowerCase();
+  if (origin && allowed.has(origin)) return true;
+  const ref = String(req.headers.referer || "").trim();
+  if (!ref) return false;
+  try {
+    const u = new URL(ref);
+    const base = `${u.protocol}//${u.host}`.toLowerCase();
+    if (allowed.has(base)) return true;
+  } catch {
+    /* ignore */
+  }
+  return false;
+}
+
+/**
+ * Honeypot + минимално време от отваряне на формата (срещу скриптове без реален UI).
+ * Клиентът изпраща `hp` (празно) и `formOpenedAt` (timestamp ms при зареждане на формата).
+ */
+function antiBotFormMetaError(body) {
+  const hp = String(body?.hp ?? body?.website ?? body?.company ?? "").trim();
+  if (hp) {
+    return { status: 400, error: "Заявката не бе приета." };
+  }
+  const opened = Number(body?.formOpenedAt);
+  if (!Number.isFinite(opened)) {
+    return { status: 400, error: "Презаредете страницата и опитайте отново." };
+  }
+  const age = Date.now() - opened;
+  const minMs = Math.max(800, Math.min(30_000, Number(process.env.SIMA_FORM_MIN_MS || 1300)));
+  const maxMs = Math.max(60_000, Number(process.env.SIMA_FORM_MAX_MS || 24 * 60 * 60 * 1000));
+  if (age < minMs) {
+    return { status: 400, error: "Моля, изчакайте момент преди изпращане." };
+  }
+  if (age > maxMs) {
+    return { status: 400, error: "Сесията изтече. Презаредете страницата." };
+  }
+  return null;
 }
 
 function isBlockedOutboundIpv4(host) {
@@ -309,14 +375,6 @@ function assertSafeOutboundUrl(rawUrl) {
   if (blockedHosts.has(host)) throw new Error("Този хост не е позволен.");
   return u.href;
 }
-
-const Bulgarian = {
-  weakGrowth: "Слаб или неравномерен растеж",
-  waterStress: "Съмнение за воден стрес",
-  disease: "Съмнение за болест или вредители",
-  nutrition: "Съмнение за хранителен дефицит",
-  unknown: "Неясен проблем",
-};
 
 const EMPTY_DB = () => ({
   users: [],
@@ -1082,10 +1140,15 @@ async function saveUploadFiles(userId, reportId, files) {
 async function handleApi(req, res, pathname) {
   if (pathname === "/api/contact" && req.method === "POST") {
     const ip = clientIp(req);
-    if (!rateLimitAllow(ip, "contact", 30, 60 * 60 * 1000)) {
+    if (!rateLimitAllow(ip, "contact", 12, 60 * 60 * 1000)) {
       return json(res, 429, { error: "Твърде много съобщения. Опитайте по-късно." });
     }
     const body = await readJson(req);
+    if (!trustedBrowserOrigin(req)) {
+      return json(res, 403, { error: "Заявката не е разрешена от този източник." });
+    }
+    const botErr = antiBotFormMetaError(body);
+    if (botErr) return json(res, botErr.status, { error: botErr.error });
     const name = String(body.name || "").trim().slice(0, 200);
     const email = String(body.email || "").trim().slice(0, 254);
     const message = String(body.message || "").trim().slice(0, 8000);
@@ -1108,10 +1171,15 @@ async function handleApi(req, res, pathname) {
   }
 
   if (pathname === "/api/auth/register" && req.method === "POST") {
+    if (!trustedBrowserOrigin(req)) {
+      return json(res, 403, { error: "Заявката не е разрешена от този източник." });
+    }
     if (!rateLimitAllow(clientIp(req), "auth", 45, 15 * 60 * 1000)) {
       return json(res, 429, { error: "Твърде много опити. Изчакайте малко и опитайте отново." });
     }
     const body = await readJson(req);
+    const botErr = antiBotFormMetaError(body);
+    if (botErr) return json(res, botErr.status, { error: botErr.error });
     if (!body.email || !body.password) return json(res, 400, { error: "Имейл и парола са задължителни." });
 
     const db = await readDb();
@@ -1134,10 +1202,15 @@ async function handleApi(req, res, pathname) {
   }
 
   if (pathname === "/api/auth/login" && req.method === "POST") {
+    if (!trustedBrowserOrigin(req)) {
+      return json(res, 403, { error: "Заявката не е разрешена от този източник." });
+    }
     if (!rateLimitAllow(clientIp(req), "auth", 45, 15 * 60 * 1000)) {
       return json(res, 429, { error: "Твърде много опити. Изчакайте малко и опитайте отново." });
     }
     const body = await readJson(req);
+    const botErr = antiBotFormMetaError(body);
+    if (botErr) return json(res, botErr.status, { error: botErr.error });
     const db = await readDb();
     const user = db.users.find((item) => item.email.toLowerCase() === String(body.email || "").toLowerCase());
     if (!user || !verifyPassword(body.password || "", user.passwordHash)) {
@@ -1172,6 +1245,10 @@ async function handleApi(req, res, pathname) {
   }
 
   if (pathname === "/api/config" && req.method === "GET") {
+    const ip = clientIp(req);
+    if (!rateLimitAllow(ip, "config", 240, 15 * 60 * 1000)) {
+      return json(res, 429, { error: "Твърде много заявки. Опитайте по-късно." });
+    }
     return json(res, 200, { map: publicMapConfig() });
   }
 
