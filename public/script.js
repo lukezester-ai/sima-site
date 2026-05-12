@@ -489,7 +489,7 @@ function initBoundaryMapLibre() {
   boundaryMapInstance.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
   boundaryMapInstance.doubleClickZoom.disable();
 
-  boundaryMapInstance.on("load", () => {
+  boundaryMapInstance.on("load", async () => {
     boundaryMapInstance.addSource("boundary-draw", {
       type: "geojson",
       data: buildBoundaryFeatureCollection(),
@@ -540,6 +540,14 @@ function initBoundaryMapLibre() {
     });
 
     addTerrainSourceAndHillshade();
+    /** RainViewer tile URL изисква path от API — иначе слоевете не се създават и бутоните „не работят“. */
+    if (mapConfig.weather?.provider === "rainviewer") {
+      try {
+        await refreshRainViewerTimestamp();
+      } catch {
+        /* мрежова грешка — слоевете може да липсват до следващ refresh или клик */
+      }
+    }
     addWeatherSourcesAndLayers();
 
     boundaryMapReady = true;
@@ -672,12 +680,24 @@ function setWeatherLayerEnabled(layerId, enabled) {
   const sourceId = `weather-${layerId}`;
   const layerDef = mapConfig.weather?.layers?.find((l) => l.id === layerId);
   if (!layerDef) return;
-  if (enabled) activeWeatherLayers.add(layerId);
-  else activeWeatherLayers.delete(layerId);
 
-  if (enabled && !boundaryMapInstance.getSource(sourceId)) {
+  const btn = document.querySelector(`[data-weather-layer="${layerId}"]`);
+
+  if (!enabled) {
+    activeWeatherLayers.delete(layerId);
+    if (boundaryMapInstance.getLayer(sourceId)) {
+      boundaryMapInstance.setLayoutProperty(sourceId, "visibility", "none");
+    }
+    if (btn) btn.classList.remove("is-active");
+    return;
+  }
+
+  if (!boundaryMapInstance.getSource(sourceId)) {
     const tileUrl = resolveWeatherTileUrl(layerDef);
-    if (!tileUrl) return;
+    if (!tileUrl) {
+      if (btn) btn.classList.remove("is-active");
+      return;
+    }
     const sourceSpec = {
       type: "raster",
       tiles: [tileUrl],
@@ -691,20 +711,18 @@ function setWeatherLayerEnabled(layerId, enabled) {
       id: sourceId,
       type: "raster",
       source: sourceId,
+      layout: { visibility: "visible" },
       paint: { "raster-opacity": layerDef.opacity ?? 0.6 },
     };
     if (typeof layerDef.minzoom === "number") layerSpec.minzoom = layerDef.minzoom;
     if (typeof layerDef.maxzoom === "number") layerSpec.maxzoom = layerDef.maxzoom + 1;
     boundaryMapInstance.addLayer(layerSpec);
   } else if (boundaryMapInstance.getLayer(sourceId)) {
-    boundaryMapInstance.setLayoutProperty(
-      sourceId,
-      "visibility",
-      enabled ? "visible" : "none"
-    );
+    boundaryMapInstance.setLayoutProperty(sourceId, "visibility", "visible");
   }
-  const btn = document.querySelector(`[data-weather-layer="${layerId}"]`);
-  if (btn) btn.classList.toggle("is-active", enabled);
+
+  activeWeatherLayers.add(layerId);
+  if (btn) btn.classList.add("is-active");
 }
 
 async function startRainViewerRefresh() {
@@ -773,7 +791,21 @@ function ensureMapToggleButtons() {
       btn.dataset.weatherLayer = layer.id;
       btn.textContent = Lj.weatherLayerLabels?.[layer.id] || layer.id;
       btn.addEventListener("click", () => {
-        setWeatherLayerEnabled(layer.id, !activeWeatherLayers.has(layer.id));
+        void (async () => {
+          const wantOn = !activeWeatherLayers.has(layer.id);
+          if (
+            wantOn &&
+            mapConfig.weather?.provider === "rainviewer" &&
+            !resolveWeatherTileUrl(layer)
+          ) {
+            try {
+              await refreshRainViewerTimestamp();
+            } catch {
+              /* ignore */
+            }
+          }
+          setWeatherLayerEnabled(layer.id, wantOn);
+        })();
       });
       actions.appendChild(btn);
     }
