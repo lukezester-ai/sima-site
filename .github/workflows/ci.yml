@@ -20,3 +20,6 @@ jobs:
 
       - name: Lint, static checks, smoke tests
         run: npm test
+
+      - name: Build React bundle (Vite)
+        run: npm run build:react

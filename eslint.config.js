@@ -13,6 +13,8 @@ export default [
       "public/vendor/**",
       "public/react-dist/**",
       "scripts/**/*.mjs",
+      /** Вложени копия на проекта (архив/клон) — не са част от основния lint обхват. */
+      "sima-site/**",
     ],
   },
   js.configs.recommended,

@@ -1,8 +1,7 @@
 import { createServer } from "node:http";
 import { appendFile, readFile, writeFile, mkdir, stat } from "node:fs/promises";
 import { createReadStream, readFileSync, existsSync } from "node:fs";
-import { basename, extname, join, normalize, relative } from "node:path";
-import { dirname } from "node:path";
+import { basename, dirname, extname, join, normalize, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomBytes, pbkdf2Sync } from "node:crypto";
 
@@ -132,6 +131,10 @@ function cacheControlFor(filePath) {
   const ext = extname(filePath).toLowerCase();
   if (ext === ".html" || ext === ".webmanifest") return "no-cache";
   if (basename(filePath) === "sw.js") return "no-cache";
+  /** Критичен клиентски код — без дълъг кеш, за да влизат hotfix-ове веднага след deploy. */
+  if (ext === ".js" && (basename(filePath) === "script.js" || basename(filePath) === "i18n.js")) {
+    return "no-cache";
+  }
   if ([".css", ".js", ".png", ".jpg", ".jpeg", ".webp", ".svg", ".ico"].includes(ext)) {
     return "public, max-age=86400, must-revalidate";
   }
@@ -236,7 +239,6 @@ function isBlockedOutboundIpv4(host) {
   if (a === 172 && b >= 16 && b <= 31) return true;
   if (a === 192 && p[1] === 168) return true;
   if (a === 100 && b >= 64 && b <= 127) return true;
-  if (a === 169 && p[1] === 254) return true;
   return false;
 }
 
