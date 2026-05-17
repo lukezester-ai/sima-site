@@ -698,8 +698,10 @@ function llmConfig() {
     return { provider: "demo", baseUrl: "", apiKey: "", model: "" };
   }
 
+  const zaiKey = (process.env.ZAI_API_KEY || "").trim();
   const apiKey = (
     process.env.LLM_API_KEY ||
+    zaiKey ||
     process.env.MISTRAL_API_KEY ||
     process.env.OPENAI_API_KEY ||
     ""
@@ -707,7 +709,8 @@ function llmConfig() {
 
   let provider = explicit;
   if (!provider) {
-    if (process.env.MISTRAL_API_KEY) provider = "mistral";
+    if (zaiKey) provider = "zai";
+    else if (process.env.MISTRAL_API_KEY) provider = "mistral";
     else if (process.env.OPENAI_API_KEY || process.env.LLM_API_KEY) provider = "openai-compatible";
     else provider = "demo";
   }
@@ -715,6 +718,7 @@ function llmConfig() {
   let baseUrl = (process.env.LLM_BASE_URL || "").trim();
   if (!baseUrl) {
     if (provider === "ollama") baseUrl = "http://127.0.0.1:11434";
+    else if (provider === "zai") baseUrl = "https://api.z.ai/api/paas/v4";
     else if (provider === "mistral") baseUrl = "https://api.mistral.ai/v1";
     else baseUrl = "https://api.openai.com/v1";
   }
@@ -722,7 +726,13 @@ function llmConfig() {
   const model =
     process.env.LLM_MODEL ||
     process.env.OPENAI_MODEL ||
-    (provider === "ollama" ? "llama3.2" : provider === "mistral" ? "mistral-small-latest" : "gpt-4o-mini");
+    (provider === "ollama"
+      ? "llama3.2"
+      : provider === "zai"
+        ? "glm-5.1"
+        : provider === "mistral"
+          ? "mistral-small-latest"
+          : "gpt-4o-mini");
 
   if (provider === "demo" || (provider !== "ollama" && !apiKey)) {
     return { provider: "demo", baseUrl: baseUrl.replace(/\/$/, ""), apiKey: "", model };
@@ -744,23 +754,56 @@ function imageContentForChat(files) {
 async function callOpenAiCompatibleLlm(config, prompt, files) {
   if (!config.apiKey) return null;
 
-  const response = await fetch(`${config.baseUrl}/chat/completions`, {
+  const messages = [
+    {
+      role: "system",
+      content:
+        "Отговори само с валиден JSON обект (без markdown). Полета: state, priority, actions (масив), monitoring.",
+    },
+    {
+      role: "user",
+      content: [{ type: "text", text: prompt }, ...imageContentForChat(files)],
+    },
+  ];
+
+  const maxTokens = Number(process.env.LLM_MAX_TOKENS) || 4096;
+  const temperature = Number(process.env.LLM_TEMPERATURE);
+  const useJsonFormat = config.provider !== "zai";
+
+  const buildBody = (withJsonFormat) => {
+    const body = {
+      model: config.model,
+      messages,
+      max_tokens: Number.isFinite(maxTokens) ? maxTokens : 4096,
+    };
+    if (Number.isFinite(temperature)) body.temperature = temperature;
+    else if (config.provider === "zai") body.temperature = 0.7;
+    if (withJsonFormat) body.response_format = { type: "json_object" };
+    if (config.provider === "zai" && process.env.LLM_THINKING === "1") {
+      body.thinking = { type: "enabled" };
+    }
+    return body;
+  };
+
+  let response = await fetch(`${config.baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
       authorization: `Bearer ${config.apiKey}`,
       "content-type": "application/json",
     },
-    body: JSON.stringify({
-      model: config.model,
-      messages: [
-        {
-          role: "user",
-          content: [{ type: "text", text: prompt }, ...imageContentForChat(files)],
-        },
-      ],
-      response_format: { type: "json_object" },
-    }),
+    body: JSON.stringify(buildBody(useJsonFormat)),
   });
+
+  if (!response.ok && useJsonFormat) {
+    response = await fetch(`${config.baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${config.apiKey}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(buildBody(false)),
+    });
+  }
 
   if (!response.ok) {
     throw new Error(`LLM API error ${response.status}: ${await response.text()}`);
@@ -769,6 +812,98 @@ async function callOpenAiCompatibleLlm(config, prompt, files) {
   const result = await response.json();
   const text = result.choices?.[0]?.message?.content;
   return normalizeLlmReport(parseJsonFromText(text));
+}
+
+function normalizePortalChatMessages(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (const item of raw.slice(-24)) {
+    const role = item?.role === "assistant" ? "assistant" : item?.role === "user" ? "user" : null;
+    if (!role) continue;
+    const content = String(item.content || "")
+      .trim()
+      .slice(0, 6000);
+    if (!content) continue;
+    out.push({ role, content });
+  }
+  return out;
+}
+
+function buildPortalChatSystemPrompt({ fieldsSummary, knowledge = [], rag = { lines: [], mode: "none" } }) {
+  const knowledgeText = knowledge.length
+    ? knowledge
+        .map((item, index) => {
+          return `Източник ${index + 1}: ${item.title || item.source || "бележка"}\n${String(item.text || "").slice(0, 1200)}`;
+        })
+        .join("\n\n")
+    : "Няма релевантни записи в базата знания.";
+
+  const ragText =
+    rag.lines?.length > 0
+      ? rag.lines.map((item, index) => `Откъс ${index + 1} (${item.title}):\n${item.text}`).join("\n\n")
+      : "Няма RAG откъси за този въпрос.";
+
+  return [
+    "Ти си SIMA AI агрономичен асистент в портала на фермера.",
+    "Отговаряй на български, кратко и практично — с конкретни следващи стъпки на терен.",
+    "Не измисляй нормативни актове или цифри; ако липсва информация, кажи какво да се провери.",
+    "Можеш да споменеш Field Watch, полета, задачи и базата знания на потребителя.",
+    fieldsSummary ? `Полета на потребителя: ${fieldsSummary}` : "Потребителят все още няма регистрирани полета.",
+    `Вътрешна база знания:\n${knowledgeText}`,
+    `RAG контекст (режим: ${rag.mode}):\n${ragText}`,
+  ].join("\n\n");
+}
+
+async function callPortalChatLlm(config, messages, systemPrompt) {
+  if (!config.apiKey && config.provider !== "ollama") return null;
+
+  const maxTokens = Number(process.env.LLM_MAX_TOKENS) || 2048;
+  const temperature = Number(process.env.LLM_TEMPERATURE);
+
+  if (config.provider === "ollama") {
+    const response = await fetch(`${config.baseUrl}/api/chat`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        model: config.model,
+        stream: false,
+        messages: [{ role: "system", content: systemPrompt }, ...messages],
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`Ollama API error ${response.status}: ${await response.text()}`);
+    }
+    const result = await response.json();
+    return String(result.message?.content || "").trim();
+  }
+
+  const body = {
+    model: config.model,
+    messages: [{ role: "system", content: systemPrompt }, ...messages],
+    max_tokens: Number.isFinite(maxTokens) ? maxTokens : 2048,
+  };
+  if (Number.isFinite(temperature)) body.temperature = temperature;
+  else if (config.provider === "zai") body.temperature = 0.7;
+
+  if (config.provider === "zai" && process.env.LLM_THINKING === "1") {
+    body.thinking = { type: "enabled" };
+  }
+
+  const response = await fetch(`${config.baseUrl}/chat/completions`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${config.apiKey}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    throw new Error(`LLM API error ${response.status}: ${await response.text()}`);
+  }
+
+  const result = await response.json();
+  return String(result.choices?.[0]?.message?.content || "").trim();
 }
 
 async function callOllamaLlm(config, prompt) {
@@ -836,7 +971,11 @@ function ragEmbeddingConfig() {
     Boolean(mistralKey) || llmProv === "mistral" || (process.env.LLM_BASE_URL || "").includes("mistral.ai");
 
   const defaultBase = inferMistral ? "https://api.mistral.ai/v1" : "https://api.openai.com/v1";
-  const baseUrl = (process.env.EMBEDDING_BASE_URL || process.env.LLM_BASE_URL || defaultBase).replace(/\/$/, "");
+  let baseUrl = (process.env.EMBEDDING_BASE_URL || process.env.LLM_BASE_URL || defaultBase).replace(/\/$/, "");
+  /** Z.AI chat API няма embeddings — не ползвай paas/v4 базата за RAG без отделен EMBEDDING_BASE_URL. */
+  if (!process.env.EMBEDDING_BASE_URL && (llmProv === "zai" || baseUrl.includes("z.ai"))) {
+    baseUrl = defaultBase;
+  }
 
   const defaultModel =
     inferMistral || baseUrl.includes("mistral.ai") ? "mistral-embed" : "text-embedding-3-small";
@@ -1111,7 +1250,7 @@ async function analyzeWithLLM(fields, files, knowledge = [], rag = { lines: [], 
     };
   }
 
-  /** Mistral и OpenAI-съвместими API ползват един и същ /chat/completions формат. */
+  /** Mistral, Z.AI и OpenAI-съвместими API ползват /chat/completions. */
   return {
     report: await callOpenAiCompatibleLlm(config, prompt, files),
     mode: `llm:${config.provider}:${config.model}`,
@@ -1182,18 +1321,29 @@ async function handleApi(req, res, pathname) {
     const body = await readJson(req);
     const botErr = antiBotFormMetaError(body);
     if (botErr) return json(res, botErr.status, { error: botErr.error });
-    if (!body.email || !body.password) return json(res, 400, { error: "Имейл и парола са задължителни." });
+    const email = String(body.email || "")
+      .trim()
+      .toLowerCase()
+      .slice(0, 254);
+    const password = String(body.password || "");
+    if (!email || !password) return json(res, 400, { error: "Имейл и парола са задължителни." });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return json(res, 400, { error: "Въведете валиден имейл." });
+    }
+    if (password.length < 8) {
+      return json(res, 400, { error: "Паролата трябва да е поне 8 знака." });
+    }
 
     const db = await readDb();
-    if (db.users.some((user) => user.email.toLowerCase() === body.email.toLowerCase())) {
+    if (db.users.some((user) => user.email.toLowerCase() === email)) {
       return json(res, 409, { error: "Вече има акаунт с този имейл." });
     }
 
     const user = {
       id: id("usr"),
-      name: body.name || "Фермер",
-      email: body.email.toLowerCase(),
-      passwordHash: hashPassword(body.password),
+      name: String(body.name || "Фермер").trim().slice(0, 200) || "Фермер",
+      email,
+      passwordHash: hashPassword(password),
       createdAt: new Date().toISOString(),
     };
     const token = id("tok");
@@ -1477,6 +1627,74 @@ async function handleApi(req, res, pathname) {
     } catch (error) {
       console.warn("[RAG] ingest:", error.message);
       return json(res, 500, { error: error.message || "RAG индексиране не успя." });
+    }
+  }
+
+  if (pathname === "/api/chat" && req.method === "POST") {
+    const auth = await requireUser(req, res);
+    if (!auth) return;
+    const ip = clientIp(req);
+    if (!rateLimitAllow(ip, "chat", 40, 15 * 60 * 1000)) {
+      return json(res, 429, { error: "Твърде много съобщения. Изчакайте малко и опитайте пак." });
+    }
+
+    const body = await readJson(req);
+    const messages = normalizePortalChatMessages(body.messages);
+    if (!messages.length || messages[messages.length - 1].role !== "user") {
+      return json(res, 400, { error: "Изпратете поне едно потребителско съобщение." });
+    }
+
+    const config = llmConfig();
+    if (config.provider === "demo") {
+      return json(res, 503, {
+        error: "AI чатът изисква LLM ключ (напр. ZAI_API_KEY). Вижте LLM-CONFIG.md.",
+      });
+    }
+
+    const lastUser = messages.filter((m) => m.role === "user").pop()?.content || "";
+    const queryFields = {
+      fieldName: "",
+      area: "",
+      crop: "",
+      concern: "",
+      stage: "",
+      notes: lastUser,
+    };
+
+    const knowledge = retrieveKnowledge(auth.db, auth.user.id, queryFields);
+    let ragContext = { lines: [], mode: "none", picked: 0 };
+    try {
+      ragContext = await retrieveRagContext(auth.db, auth.user.id, queryFields);
+    } catch (ragErr) {
+      console.warn("[chat] RAG:", ragErr.message);
+    }
+
+    const userFields = auth.db.fields.filter((f) => f.userId === auth.user.id);
+    const fieldsSummary = userFields.length
+      ? userFields
+          .slice(0, 12)
+          .map((f) => `${f.name || "поле"} (${f.area || "площ?"}, ${f.crop || "култура?"})`)
+          .join("; ")
+      : "";
+
+    const systemPrompt = buildPortalChatSystemPrompt({ fieldsSummary, knowledge, rag: ragContext });
+
+    try {
+      const reply = await callPortalChatLlm(config, messages, systemPrompt);
+      if (!reply) {
+        return json(res, 502, { error: "Празен отговор от AI модела." });
+      }
+      return json(res, 200, {
+        response: reply,
+        model: config.model,
+        provider: config.provider,
+        retrieval: { mode: ragContext.mode, items: ragContext.picked },
+      });
+    } catch (error) {
+      console.error("[chat]", error);
+      return json(res, 502, {
+        error: error instanceof Error ? error.message : "Грешка при AI чат заявка.",
+      });
     }
   }
 

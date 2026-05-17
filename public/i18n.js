@@ -121,6 +121,10 @@
       auth_local: "Локален режим",
       auth_helper: "Влезте, за да пазите данните в backend.",
       auth_logged_helper: "Данните се пазят в backend база.",
+      auth_invalid_email: "Въведете валиден имейл.",
+      auth_password_short: "Паролата трябва да е поне 8 знака.",
+      auth_register_ok: "Регистрацията успя. Влезли сте в портала.",
+      auth_login_ok: "Успешен вход.",
       ph_name: "Име",
       ph_email: "Имейл",
       ph_pass: "Парола",
@@ -133,7 +137,14 @@
       tab_tasks: "Задачи",
       tab_weather: "Метео",
       tab_knowledge: "Знания",
+      tab_chat: "AI чат",
       tab_team: "SIMA екип",
+      chat_eyebrow: "AI асистент",
+      chat_h: "Чат за агро въпроси",
+      chat_intro:
+        "Задайте въпрос за поле, култура, риск или задача. Отговорите ползват вашите полета и базата знания.",
+      chat_ph: "Например: Какво да проверя при пожълтяване на пшеница след валеж?",
+      chat_send: "Изпрати",
       dash_eyebrow: "Общ преглед",
       dash_h: "Работно табло",
       metric_fields_lbl: "активни полета",
@@ -398,6 +409,10 @@
       auth_local: "Local mode",
       auth_helper: "Sign in to persist data on the backend.",
       auth_logged_helper: "Data is stored in the backend database.",
+      auth_invalid_email: "Enter a valid email address.",
+      auth_password_short: "Password must be at least 8 characters.",
+      auth_register_ok: "Registration successful. You are signed in.",
+      auth_login_ok: "Signed in successfully.",
       ph_name: "Name",
       ph_email: "Email",
       ph_pass: "Password",
@@ -410,7 +425,14 @@
       tab_tasks: "Tasks",
       tab_weather: "Weather",
       tab_knowledge: "Knowledge",
+      tab_chat: "AI chat",
       tab_team: "SIMA team",
+      chat_eyebrow: "AI assistant",
+      chat_h: "Agro Q&A chat",
+      chat_intro:
+        "Ask about a field, crop, risk, or task. Answers use your fields and knowledge base.",
+      chat_ph: "e.g. What should I check if wheat turns yellow after rain?",
+      chat_send: "Send",
       dash_eyebrow: "Overview",
       dash_h: "Dashboard",
       metric_fields_lbl: "active fields",
@@ -563,6 +585,12 @@
   const JS = {
     bg: {
       api_error: "API грешка.",
+      chat_empty: "Задайте първия въпрос — асистентът отговаря на български.",
+      chat_you: "Вие",
+      chat_ai: "SIMA AI",
+      chat_login_required: "Влезте в акаунт, за да ползвате AI чата.",
+      chat_thinking: "Мисля…",
+      chat_ready: "Готово",
       auth_logged_in: (name) => `Вход: ${name}`,
       rag_line: (total, emb, on) =>
         `RAG: ${total} фрагмента (${emb} с embeddings). ${
@@ -777,6 +805,12 @@
     },
     en: {
       api_error: "API error.",
+      chat_empty: "Ask your first question — the assistant replies in your language.",
+      chat_you: "You",
+      chat_ai: "SIMA AI",
+      chat_login_required: "Sign in to use AI chat.",
+      chat_thinking: "Thinking…",
+      chat_ready: "Done",
       auth_logged_in: (name) => `Signed in: ${name}`,
       rag_line: (total, emb, on) =>
         `RAG: ${total} chunks (${emb} with embeddings). ${

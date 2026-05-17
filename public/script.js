@@ -34,6 +34,12 @@ const knowledgeForm = document.querySelector("#knowledge-form");
 const knowledgeList = document.querySelector("#knowledge-list");
 const weatherForm = document.querySelector("#weather-form");
 const weatherResult = document.querySelector("#weather-result");
+const chatMessagesEl = document.querySelector("#chat-messages");
+const chatForm = document.querySelector("#chat-form");
+const chatInput = document.querySelector("#chat-input");
+const chatStatus = document.querySelector("#chat-status");
+const chatSubmit = document.querySelector("#chat-submit");
+let portalChatMessages = [];
 const boundaryMap = document.querySelector("#field-boundary-map");
 const mapHelper = document.querySelector("#map-helper");
 const undoMapPointButton = document.querySelector("#undo-map-point");
@@ -1269,8 +1275,63 @@ feedbackForm?.addEventListener("submit", async (event) => {
   }
 });
 
+function renderPortalChat() {
+  if (!chatMessagesEl) return;
+  const Lc = J();
+  if (!portalChatMessages.length) {
+    chatMessagesEl.innerHTML = `<p class="sima-chat-empty">${escapeHtml(Lc.chat_empty)}</p>`;
+    return;
+  }
+  chatMessagesEl.innerHTML = portalChatMessages
+    .map(
+      (msg) => `
+    <div class="sima-chat-bubble sima-chat-bubble--${msg.role === "user" ? "user" : "assistant"}">
+      <p class="sima-chat-role">${escapeHtml(msg.role === "user" ? Lc.chat_you : Lc.chat_ai)}</p>
+      <div class="sima-chat-text">${escapeHtml(msg.content).replace(/\n/g, "<br>")}</div>
+    </div>`,
+    )
+    .join("");
+  chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+}
+
+chatForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const Lc = J();
+  if (!getToken()) {
+    if (chatStatus) chatStatus.textContent = Lc.chat_login_required;
+    return;
+  }
+  const text = chatInput?.value.trim() || "";
+  if (!text) return;
+
+  portalChatMessages.push({ role: "user", content: text });
+  if (chatInput) chatInput.value = "";
+  renderPortalChat();
+
+  if (chatSubmit) chatSubmit.disabled = true;
+  if (chatStatus) chatStatus.textContent = Lc.chat_thinking;
+
+  try {
+    const data = await apiFetch("/api/chat", {
+      method: "POST",
+      body: JSON.stringify({ messages: portalChatMessages }),
+    });
+    portalChatMessages.push({ role: "assistant", content: data.response || "" });
+    if (chatStatus) {
+      chatStatus.textContent =
+        data.provider && data.model ? `${data.provider} · ${data.model}` : Lc.chat_ready;
+    }
+  } catch (error) {
+    if (chatStatus) chatStatus.textContent = error.message;
+  } finally {
+    if (chatSubmit) chatSubmit.disabled = false;
+    renderPortalChat();
+  }
+});
+
 renderHistory();
 renderPortal();
+renderPortalChat();
 
 portalTabs.forEach((tab) => {
   tab.addEventListener("click", () => {
@@ -1282,6 +1343,9 @@ portalTabs.forEach((tab) => {
     });
     if (target === "fields") {
       requestAnimationFrame(() => resizeBoundaryMap());
+    }
+    if (target === "chat") {
+      requestAnimationFrame(() => chatInput?.focus());
     }
   });
 });
@@ -1461,21 +1525,36 @@ authForm?.addEventListener("click", (event) => {
 
 authForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
+  const submitter = event.submitter;
+  if (submitter?.dataset?.authAction) {
+    authAction = submitter.dataset.authAction;
+  }
   const data = new FormData(authForm);
+  const email = data.get("email")?.toString().trim() || "";
+  const password = data.get("password")?.toString() || "";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    setAuthMessage(J().auth_invalid_email);
+    return;
+  }
+  if (password.length < 8) {
+    setAuthMessage(J().auth_password_short);
+    return;
+  }
 
   try {
     const result = await apiFetch(`/api/auth/${authAction}`, {
       method: "POST",
       body: JSON.stringify({
         name: data.get("name")?.toString().trim(),
-        email: data.get("email")?.toString().trim(),
-        password: data.get("password")?.toString(),
+        email,
+        password,
         hp: data.get("hp")?.toString() ?? "",
         formOpenedAt: authFormOpenedAt,
       }),
     });
     localStorage.setItem(tokenKey, result.token);
     authForm.reset();
+    setAuthMessage(authAction === "register" ? J().auth_register_ok : J().auth_login_ok);
     await refreshBackendData();
   } catch (error) {
     setAuthMessage(error.message);

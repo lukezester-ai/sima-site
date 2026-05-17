@@ -414,6 +414,7 @@
             <button class="portal-tab" type="button" data-portal-tab="tasks" data-i18n="tab_tasks">Задачи</button>
             <button class="portal-tab" type="button" data-portal-tab="weather" data-i18n="tab_weather">Метео</button>
             <button class="portal-tab" type="button" data-portal-tab="knowledge" data-i18n="tab_knowledge">Знания</button>
+            <button class="portal-tab" type="button" data-portal-tab="chat" data-i18n="tab_chat">AI чат</button>
             <button class="portal-tab" type="button" data-portal-tab="team" data-i18n="tab_team">SIMA екип</button>
           </aside>
 
@@ -569,6 +570,32 @@
                 <button type="submit" data-i18n="kn_add">Добави знание</button>
               </form>
               <div class="portal-list" id="knowledge-list"></div>
+            </section>
+
+            <section class="portal-panel" data-portal-panel="chat">
+              <div class="portal-topline">
+                <div>
+                  <p class="eyebrow" data-i18n="chat_eyebrow">AI асистент</p>
+                  <h3 data-i18n="chat_h">Чат за агро въпроси</h3>
+                </div>
+              </div>
+              <p class="muted sima-chat-intro" data-i18n="chat_intro">
+                Задайте въпрос за поле, култура, риск или задача. Отговорите ползват вашите полета и базата знания.
+              </p>
+              <div class="sima-chat" id="sima-chat">
+                <div class="sima-chat-messages" id="chat-messages" aria-live="polite"></div>
+                <form class="sima-chat-form" id="chat-form">
+                  <textarea
+                    name="message"
+                    id="chat-input"
+                    rows="3"
+                    data-i18n-placeholder="chat_ph"
+                    placeholder="Например: Какво да проверя при пожълтяване на пшеница след валеж?"
+                  ></textarea>
+                  <button type="submit" id="chat-submit" data-i18n="chat_send">Изпрати</button>
+                </form>
+                <p class="muted sima-chat-status" id="chat-status"></p>
+              </div>
             </section>
 
             <section class="portal-panel" data-portal-panel="team">

@@ -12,6 +12,27 @@ Backend-ът вече не е вързан към един AI доставчик
 node server.js
 ```
 
+## Z.AI (glm-5.1) — Field Watch и портален AI чат
+
+След вход в портала: таб **„AI чат“** → `POST /api/chat` (същият LLM ключ).
+
+OpenAI-съвместим endpoint: `POST https://api.z.ai/api/paas/v4/chat/completions`.
+
+В `.env` или `.env.local` в корена на проекта:
+
+```powershell
+$env:LLM_PROVIDER="zai"
+$env:ZAI_API_KEY="your_z_ai_key"
+$env:LLM_MODEL="glm-5.1"
+node server.js
+```
+
+Или само `ZAI_API_KEY` (без `LLM_PROVIDER`) — сървърът избира автоматично доставчик **zai**.
+
+По подразбиране **без** `thinking` (по-бърз JSON доклад). За по-бавен „размисъл“: `LLM_THINKING=1`.
+
+**RAG embeddings:** Z.AI ключът не се ползва за вектори. За семантично търсене задайте отделно напр. `MISTRAL_API_KEY` или `OPENAI_API_KEY` + `EMBEDDING_BASE_URL`, или оставете keyword-only RAG.
+
 ## Mistral AI
 
 Официалният API е OpenAI-съвместим за **`/v1/chat/completions`** и **`/v1/embeddings`**.

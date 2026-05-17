@@ -140,7 +140,28 @@ async function main() {
       throw new Error(`/api/contact отговор: ${contact.text}`);
     }
 
-    console.log("smoke-server: OK (health, config без Turnstile, contact POST).");
+    const regEmail = `smoke-${Date.now()}@example.com`;
+    const regBody = JSON.stringify({
+      hp: "",
+      formOpenedAt: opened,
+      name: "Smoke Test",
+      email: regEmail,
+      password: "smoke-pass-8",
+    });
+    const reg = await httpJson(port, "/api/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Origin: base,
+        Referer: `${base}/`,
+      },
+      body: regBody,
+    });
+    if (reg.status !== 201 || !reg.json?.token || !reg.json?.user?.email) {
+      throw new Error(`/api/auth/register ${reg.status}: ${reg.text}`);
+    }
+
+    console.log("smoke-server: OK (health, config, contact, register).");
   } finally {
     kill();
     await new Promise((r) => setTimeout(r, 400));

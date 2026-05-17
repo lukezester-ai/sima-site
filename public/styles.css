@@ -1415,6 +1415,116 @@ h3 {
     0 10px 26px rgba(6, 61, 42, 0.32);
 }
 
+.sima-chat-intro {
+  margin: 0 0 14px;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  max-width: 52rem;
+}
+
+.sima-chat {
+  display: grid;
+  gap: 12px;
+  max-width: 52rem;
+}
+
+.sima-chat-messages {
+  min-height: 280px;
+  max-height: min(52vh, 520px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(231, 241, 234, 0.35);
+}
+
+.sima-chat-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.sima-chat-bubble {
+  max-width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.sima-chat-bubble--user {
+  margin-left: 12%;
+  border-color: rgba(6, 95, 70, 0.25);
+  background: rgba(231, 241, 234, 0.85);
+}
+
+.sima-chat-bubble--assistant {
+  margin-right: 6%;
+}
+
+.sima-chat-role {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--green-800);
+}
+
+.sima-chat-text {
+  margin: 0;
+  font-size: 0.94rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.sima-chat-form {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+}
+
+.sima-chat-form textarea {
+  grid-column: 1 / -1;
+  min-height: 88px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 13px;
+  font: inherit;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.sima-chat-form button {
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  background: linear-gradient(168deg, var(--green-700) 0%, var(--green-950) 52%, #052218 100%);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  padding: 0 20px;
+  min-height: 46px;
+}
+
+.sima-chat-form button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.sima-chat-status {
+  margin: 0;
+  font-size: 0.84rem;
+  min-height: 1.2em;
+}
+
 .weather-result {
   display: grid;
   gap: 14px;
