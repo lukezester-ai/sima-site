@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SIMA Simulator | Field Training Lab</title>
+    <meta
+      name="description"
+      content="SIMA simulator for field monitoring, drone scenario review, and agricultural decision training."
+    />
+    <meta name="theme-color" content="#063d2a" />
+    <link rel="icon" type="image/png" href="/assets/sima-logo.png" />
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      body { background: #f6f8f3; }
+      .sim-page { width: min(1440px, calc(100% - 36px)); margin: 0 auto; padding: 34px 0 52px; }
+      .sim-hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.65fr); gap: 22px; align-items: end; margin-bottom: 22px; }
+      .sim-hero h1 { max-width: 840px; margin: 0 0 12px; color: var(--green-950); font-family: var(--display-font); font-size: clamp(40px, 6vw, 78px); line-height: 0.96; letter-spacing: 0; }
+      .sim-hero p { max-width: 760px; margin: 0; color: var(--muted); font-size: clamp(1rem, 1.4vw, 1.15rem); line-height: 1.65; }
+      .sim-note { display: grid; gap: 8px; padding: 18px; border: 1px solid rgba(6, 61, 42, 0.16); border-radius: 8px; background: rgba(255,255,255,0.76); box-shadow: 0 18px 48px rgba(6,61,42,0.08); color: var(--muted); font-size: 0.95rem; line-height: 1.5; }
+      .sim-note strong { color: var(--green-950); }
+      .sim-toolbar { display: flex; justify-content: space-between; gap: 14px; align-items: center; margin: 0 0 12px; color: var(--muted); font-size: 0.92rem; }
+      .sim-toolbar a { color: var(--green-950); font-weight: 700; text-decoration: none; }
+      .sim-card { overflow: hidden; border: 1px solid rgba(6, 61, 42, 0.16); border-radius: 8px; background: #0d1110; box-shadow: 0 26px 70px rgba(6,61,42,0.16); }
+      .sim-frame { display: block; width: 100%; min-height: 920px; border: 0; background: #0d1110; }
+      @media (max-width: 900px) {
+        .sim-page { width: min(100% - 28px, 720px); padding-top: 24px; }
+        .sim-hero { grid-template-columns: 1fr; }
+        .sim-toolbar { align-items: flex-start; flex-direction: column; }
+        .sim-frame { min-height: 760px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand brand-lockup brand-lockup--header" href="/" aria-label="SIMA home">
+        <img class="brand-lockup__mark" src="/assets/sima-mark.svg" alt="" width="44" height="48" decoding="async" />
+        <span class="brand-wordmark brand-wordmark--header">SIMA</span>
+      </a>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a href="/#solutions">Solutions</a>
+        <a href="/#modules">Modules</a>
+        <a href="/#field-watch">Field Watch</a>
+        <a href="/simulator.html" aria-current="page">Simulator</a>
+        <a href="/#portal">Portal</a>
+      </nav>
+      <div class="header-actions">
+        <a class="nav-cta" href="/#contact">Consultation</a>
+      </div>
+    </header>
+
+    <main class="sim-page">
+      <section class="sim-hero">
+        <div>
+          <p class="eyebrow">SIMA Field Training Lab</p>
+          <h1>Field scenario simulator</h1>
+          <p>
+            A practical training environment for field monitoring, drone scenario review, and decision practice.
+            The simulator runs as a separate static module inside the SIMA site and can evolve into a full product feature.
+          </p>
+        </div>
+        <div class="sim-note">
+          <strong>Training module</strong>
+          <span>No real equipment control or operational action is performed here. This is a safe visual learning environment.</span>
+        </div>
+      </section>
+
+      <div class="sim-toolbar">
+        <span>Embedded simulator-app from AgriNexus Academy.</span>
+        <a href="/simulator-app/index.html" target="_blank" rel="noreferrer">Open full screen</a>
+      </div>
+
+      <section class="sim-card" aria-label="SIMA simulator">
+        <iframe class="sim-frame" src="/simulator-app/index.html" allow="fullscreen; clipboard-write" title="SIMA Field Training Simulator"></iframe>
+      </section>
+    </main>
+  </body>
+</html>

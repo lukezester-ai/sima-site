@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="bg">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>C-UAS Defense Platform</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p id="platformEyebrow" class="eyebrow">Dual-use defensive platform</p>
+          <h1>C-UAS Defense Platform</h1>
+        </div>
+        <div class="status-strip" aria-label="System status">
+          <span><strong id="trackCount">0</strong> tracks</span>
+          <span><strong id="alertCount">0</strong> alerts</span>
+          <span><strong id="watchCount">0</strong> watch</span>
+          <span class="safe">Defensive command layer</span>
+        </div>
+      </header>
+
+      <section class="mode-switch panel" aria-label="Platform mode">
+        <div>
+          <span>Platform mode</span>
+          <strong id="platformModeLabel">Civil Protection</strong>
+        </div>
+        <div class="segmented" role="group" aria-label="Civil or military platform mode">
+          <button class="active" data-platform-mode="civil" type="button">Civil Protection</button>
+          <button data-platform-mode="military" type="button">Military Defense</button>
+        </div>
+        <p id="platformModeDescription">Airport and public-safety protection for civilian areas, critical infrastructure, and emergency coordination.</p>
+      </section>
+
+      <nav class="mission-nav" aria-label="Mission console navigation">
+        <a href="#command-deck">Defense Deck</a>
+        <a href="#training-cell">Training Cell</a>
+        <a href="#mission-systems">Defense Systems</a>
+        <a href="#scenario-cell">Scenario Cell</a>
+        <a href="#field-ops">Field Defense</a>
+      </nav>
+
+      <section id="command-deck" class="section-band">
+        <span>Defense Deck</span>
+        <strong>Protected airspace picture, track review, incident containment log</strong>
+      </section>
+
+      <section class="workspace">
+        <aside class="panel controls" aria-label="Scenario controls">
+          <div class="panel-head">
+            <h2>Scenario</h2>
+            <button id="resetBtn" type="button" title="Reset scenario">Reset</button>
+          </div>
+
+          <label class="control">
+            Protected zone radius
+            <input id="radiusInput" type="range" min="90" max="210" step="10" value="150" />
+            <span id="radiusValue">150 m</span>
+          </label>
+
+          <label class="control">
+            Track density
+            <input id="densityInput" type="range" min="3" max="9" step="1" value="5" />
+            <span id="densityValue">5 drones</span>
+          </label>
+
+          <div class="segmented" role="group" aria-label="Scenario speed">
+            <button class="active" data-speed="0.7" type="button">Slow</button>
+            <button data-speed="1" type="button">Live</button>
+            <button data-speed="1.6" type="button">Fast</button>
+          </div>
+
+          <button id="pauseBtn" class="wide-action" type="button">Pause scenario</button>
+
+          <label class="control">
+            Track filter
+            <select id="riskFilter">
+              <option value="all">All tracks</option>
+              <option value="alert">Alerts only</option>
+              <option value="watch">Watch only</option>
+              <option value="clear">Clear/reviewed</option>
+            </select>
+          </label>
+
+          <label class="control">
+            Scenario preset
+            <select id="scenarioPreset">
+              <option value="custom">Custom</option>
+              <option value="airport">Airport perimeter</option>
+              <option value="infrastructure">Critical infrastructure</option>
+              <option value="event">Forward operating site</option>
+            </select>
+          </label>
+
+          <div class="summary-box" aria-label="Zone summary">
+            <span>Closest track</span>
+            <strong id="closestTrack">None</strong>
+            <span>Zone load</span>
+            <strong id="zoneLoad">Normal</strong>
+            <span>Next ETA</span>
+            <strong id="nextEta">--</strong>
+            <span>Breaches</span>
+            <strong id="breachCount">0</strong>
+          </div>
+
+          <div class="notice">
+            <strong>Training boundary</strong>
+            <p>This military defensive platform supports simulated detection, tracking, geofencing, ROE, logging, and protection workflow for airports, critical sites, and civilian safety.</p>
+          </div>
+        </aside>
+
+        <section class="map-panel" aria-label="Airspace map">
+          <canvas id="airspace" width="980" height="680"></canvas>
+          <div class="map-legend">
+            <span><i class="dot clear"></i>Clear</span>
+            <span><i class="dot watch"></i>Watch</span>
+            <span><i class="dot alert"></i>Alert</span>
+          </div>
+        </section>
+
+        <aside class="panel detail" aria-label="Track detail">
+          <div class="panel-head">
+            <h2>Selected Track</h2>
+            <span id="selectedBadge">None</span>
+          </div>
+          <dl id="trackDetails" class="track-details"></dl>
+          <p id="recommendation" class="recommendation">Select a track to review the recommended defensive workflow.</p>
+          <label class="note-field">
+            Operator note
+            <textarea id="operatorNote" rows="4" placeholder="Add observation notes for the selected track"></textarea>
+          </label>
+          <div class="actions">
+            <button id="notifyBtn" type="button">Notify operator</button>
+            <button id="ackBtn" type="button">Acknowledge alert</button>
+            <button id="logBtn" type="button">Log incident</button>
+            <button id="reportBtn" type="button">Generate report</button>
+            <button id="clearBtn" type="button">Mark reviewed</button>
+          </div>
+        </aside>
+      </section>
+
+      <section class="bottom-grid">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Active Tracks</h2>
+            <span id="clock">00:00:00</span>
+          </div>
+          <div id="trackList" class="track-list"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Operator Log</h2>
+            <div class="head-actions">
+              <button id="clearLogBtn" type="button">Clear</button>
+              <button id="exportBtn" type="button">Export JSON</button>
+            </div>
+          </div>
+          <ol id="eventLog" class="event-log"></ol>
+        </div>
+      </section>
+
+      <section id="training-cell" class="section-band">
+        <span>Training Cell</span>
+        <strong>Operator evaluation, AAR, academy certification</strong>
+      </section>
+
+      <section class="panel checklist-panel">
+        <div class="panel-head">
+          <h2>Operator Checklist</h2>
+          <span id="checklistStatus">0/5 complete</span>
+        </div>
+        <div class="checklist">
+          <label><input type="checkbox" data-check="visual" /> Visual confirmation recorded</label>
+          <label><input type="checkbox" data-check="zone" /> Protected-zone impact reviewed</label>
+          <label><input type="checkbox" data-check="authority" /> Authorized contact notified if needed</label>
+          <label><input type="checkbox" data-check="evidence" /> Evidence log updated</label>
+          <label><input type="checkbox" data-check="handoff" /> Handoff or closeout decision captured</label>
+        </div>
+      </section>
+
+      <section class="panel training-panel">
+        <div class="panel-head">
+          <h2>Phase 6 Training Evaluation</h2>
+          <span id="trainingGrade">Score --</span>
+        </div>
+        <div class="training-grid">
+          <label class="control compact">
+            Trainee
+            <input id="traineeName" type="text" value="Operator 1" />
+          </label>
+          <div class="metric-card">
+            <span>Session</span>
+            <strong id="sessionId">TRN-0000</strong>
+          </div>
+          <div class="metric-card">
+            <span>Avg response</span>
+            <strong id="avgResponse">--</strong>
+          </div>
+          <div class="metric-card">
+            <span>Training injects</span>
+            <strong id="injectCount">0</strong>
+          </div>
+        </div>
+        <div class="objective-list" id="objectiveList" aria-label="Training objectives"></div>
+        <div class="training-actions">
+          <button id="injectBtn" type="button">Run drill inject</button>
+          <button id="summaryBtn" type="button">Generate training summary</button>
+        </div>
+      </section>
+
+      <section class="panel review-panel">
+        <div class="panel-head">
+          <h2>Phase 7 After-Action Review</h2>
+          <span id="reviewStatus">0 markers</span>
+        </div>
+        <div class="review-layout">
+          <label class="control compact">
+            Review timeline
+            <input id="reviewTimeline" type="range" min="0" max="0" step="1" value="0" />
+            <span id="reviewTime">No events</span>
+          </label>
+          <div class="review-card">
+            <span>Selected event</span>
+            <strong id="reviewEvent">No event selected</strong>
+          </div>
+          <div class="review-card">
+            <span>Instructor focus</span>
+            <strong id="reviewFocus">Build a clean training record.</strong>
+          </div>
+        </div>
+        <div id="reviewMarkers" class="review-markers" aria-label="After-action review markers"></div>
+        <div class="review-actions">
+          <button id="markerBtn" type="button">Capture review marker</button>
+          <button id="aarBtn" type="button">Generate AAR</button>
+        </div>
+      </section>
+
+      <section class="panel academy-panel">
+        <div class="panel-head">
+          <h2>Phase 8 Instructor Academy</h2>
+          <span id="certStatus">Not ready</span>
+        </div>
+        <div class="academy-grid">
+          <label class="control compact">
+            Training level
+            <select id="trainingLevel">
+              <option value="foundation">Foundation</option>
+              <option value="operator">Operator</option>
+              <option value="supervisor">Supervisor</option>
+            </select>
+          </label>
+          <div class="metric-card">
+            <span>Proficiency</span>
+            <strong id="proficiencyScore">--</strong>
+          </div>
+          <div class="metric-card">
+            <span>Completed modules</span>
+            <strong id="moduleCount">0/4</strong>
+          </div>
+          <div class="metric-card">
+            <span>Certification</span>
+            <strong id="certLevel">Pending</strong>
+          </div>
+        </div>
+        <div class="module-list" aria-label="Instructor academy modules">
+          <label><input type="checkbox" data-module="airspace" /> Airspace monitoring and classification</label>
+          <label><input type="checkbox" data-module="logging" /> Evidence logging and operator notes</label>
+          <label><input type="checkbox" data-module="handoff" /> Authorized notification and handoff</label>
+          <label><input type="checkbox" data-module="review" /> After-action review and coaching</label>
+        </div>
+        <div id="skillMatrix" class="skill-matrix" aria-label="Skill matrix"></div>
+        <div class="academy-actions">
+          <button id="certificateBtn" type="button">Generate certificate</button>
+          <button id="academyExportBtn" type="button">Export academy record</button>
+        </div>
+      </section>
+
+      <section id="mission-systems" class="section-band">
+        <span>Defense Systems</span>
+        <strong>AI leader, weather, defense layer, fusion, IFF, defensive ROE</strong>
+      </section>
+
+      <section class="panel leader-panel">
+        <div class="panel-head">
+          <h2>Phase 9 AI Leader</h2>
+          <span id="leaderConfidence">Confidence --</span>
+        </div>
+        <div class="leader-grid">
+          <div class="leader-card priority">
+            <span>Priority track</span>
+            <strong id="leaderPriority">None</strong>
+          </div>
+          <div class="leader-card">
+            <span>Leader mode</span>
+            <strong id="leaderMode">Observe</strong>
+          </div>
+          <div class="leader-card">
+            <span>Next defensive action</span>
+            <strong id="leaderAction">Keep monitoring.</strong>
+          </div>
+        </div>
+        <div id="leaderBrief" class="leader-brief">AI Leader is waiting for scenario data.</div>
+        <div id="leaderWatchlist" class="leader-watchlist" aria-label="AI leader watchlist"></div>
+        <div class="leader-actions">
+          <button id="leaderBriefBtn" type="button">Generate leader brief</button>
+          <button id="leaderSnapshotBtn" type="button">Capture leader snapshot</button>
+        </div>
+      </section>
+
+      <section class="panel weather-panel">
+        <div class="panel-head">
+          <h2>Phase 10 Adverse Weather</h2>
+          <span id="weatherImpact">Impact --</span>
+        </div>
+        <div class="weather-grid">
+          <label class="control compact">
+            Weather preset
+            <select id="weatherPreset">
+              <option value="clear">Clear</option>
+              <option value="wind">High wind</option>
+              <option value="rain">Heavy rain</option>
+              <option value="fog">Low visibility fog</option>
+              <option value="storm">Storm training</option>
+              <option value="manual">Manual</option>
+            </select>
+          </label>
+          <label class="control compact">
+            Wind
+            <input id="windInput" type="range" min="0" max="40" step="1" value="4" />
+            <span id="windValue">4 kt</span>
+          </label>
+          <label class="control compact">
+            Visibility
+            <input id="visibilityInput" type="range" min="200" max="5000" step="100" value="5000" />
+            <span id="visibilityValue">5000 m</span>
+          </label>
+          <label class="control compact">
+            Turbulence
+            <input id="turbulenceInput" type="range" min="0" max="10" step="1" value="1" />
+            <span id="turbulenceValue">1/10</span>
+          </label>
+        </div>
+        <div class="weather-status">
+          <div>
+            <span>Operator effect</span>
+            <strong id="weatherOperatorEffect">Normal scan quality.</strong>
+          </div>
+          <div>
+            <span>Simulation effect</span>
+            <strong id="weatherSimulationEffect">Stable tracks.</strong>
+          </div>
+          <div>
+            <span>Route advisor</span>
+            <strong id="weatherRouteAdvisor">No correction needed.</strong>
+          </div>
+        </div>
+        <div class="weather-actions">
+          <button id="weatherBriefBtn" type="button">Generate weather brief</button>
+          <button id="weatherDrillBtn" type="button">Start weather drill</button>
+          <button id="routeCorrectionBtn" type="button">Simulate route correction</button>
+        </div>
+      </section>
+
+      <section class="panel command-panel">
+        <div class="panel-head">
+          <h2>Phase 11 Military Command Layer</h2>
+          <span id="commandReadiness">Readiness --</span>
+        </div>
+        <div class="command-grid">
+          <label class="control compact">
+            Mission profile
+            <select id="missionProfile">
+              <option value="base">Base defense</option>
+              <option value="convoy">Convoy overwatch</option>
+              <option value="border">Border sector</option>
+              <option value="infrastructure">Critical infrastructure</option>
+            </select>
+          </label>
+          <label class="control compact">
+            ROE posture
+            <select id="roePosture">
+              <option value="observe">Observe only</option>
+              <option value="notify">Notify command</option>
+              <option value="handoff">Authorized handoff</option>
+            </select>
+          </label>
+          <div class="metric-card">
+            <span>Commander priority</span>
+            <strong id="commanderPriority">None</strong>
+          </div>
+          <div class="metric-card">
+            <span>Mission risk</span>
+            <strong id="missionRisk">Nominal</strong>
+          </div>
+        </div>
+        <div id="roeMatrix" class="roe-matrix" aria-label="Rules of engagement matrix"></div>
+        <div id="sectorGrid" class="sector-grid" aria-label="Sector readiness"></div>
+        <div class="command-actions">
+          <button id="missionBriefBtn" type="button">Generate mission brief</button>
+          <button id="commanderSnapshotBtn" type="button">Capture command snapshot</button>
+        </div>
+      </section>
+
+      <section class="panel fusion-panel">
+        <div class="panel-head">
+          <h2>Phase 12 Multi-Sensor Fusion</h2>
+          <span id="fusionConfidence">Fusion --</span>
+        </div>
+        <div class="fusion-grid">
+          <label class="control compact">
+            Sensor posture
+            <select id="sensorPosture">
+              <option value="balanced">Balanced</option>
+              <option value="radar">Radar priority</option>
+              <option value="visual">EO/IR priority</option>
+              <option value="passive">Passive acoustic/RF</option>
+            </select>
+          </label>
+          <div class="metric-card">
+            <span>Agreement</span>
+            <strong id="sensorAgreement">--</strong>
+          </div>
+          <div class="metric-card">
+            <span>Fused priority</span>
+            <strong id="fusedPriority">None</strong>
+          </div>
+          <div class="metric-card">
+            <span>Data quality</span>
+            <strong id="fusionQuality">Nominal</strong>
+          </div>
+        </div>
+        <div id="sensorFeeds" class="sensor-feeds" aria-label="Simulated sensor feeds"></div>
+        <div id="fusionTrackList" class="fusion-track-list" aria-label="Fused track list"></div>
+        <div class="fusion-actions">
+          <button id="fusionBriefBtn" type="button">Generate fusion brief</button>
+          <button id="sensorFaultBtn" type="button">Inject sensor fault</button>
+        </div>
+      </section>
+
+      <section class="panel iff-panel">
+        <div class="panel-head">
+          <h2>Phase 13 IFF / Friendly Registry</h2>
+          <span id="iffStatus">Registry --</span>
+        </div>
+        <div class="iff-grid">
+          <label class="control compact">
+            Registry policy
+            <select id="iffPolicy">
+              <option value="strict">Strict verification</option>
+              <option value="balanced">Balanced review</option>
+              <option value="exercise">Exercise whitelist</option>
+            </select>
+          </label>
+          <div class="metric-card">
+            <span>Friendly matches</span>
+            <strong id="friendlyMatchCount">0</strong>
+          </div>
+          <div class="metric-card">
+            <span>Unknown tracks</span>
+            <strong id="unknownTrackCount">0</strong>
+          </div>
+          <div class="metric-card">
+            <span>False-positive reduction</span>
+            <strong id="falsePositiveReduction">0%</strong>
+          </div>
+        </div>
+        <div id="registryList" class="registry-list" aria-label="Friendly drone registry"></div>
+        <div id="iffTrackList" class="iff-track-list" aria-label="IFF track classification"></div>
+        <div class="iff-actions">
+          <button id="markFriendlyBtn" type="button">Mark selected friendly</button>
+          <button id="iffBriefBtn" type="button">Generate IFF brief</button>
+        </div>
+      </section>
+
+      <section class="panel roe-panel">
+        <div class="panel-head">
+          <h2>Phase 14 Rules of Engagement</h2>
+          <span id="roeDecisionStatus">Decision --</span>
+        </div>
+        <div class="roe-control-grid">
+          <label class="control compact">
+            Duty authority
+            <select id="dutyAuthority">
+              <option value="operator">Operator</option>
+              <option value="supervisor">Shift supervisor</option>
+              <option value="commander">Mission commander</option>
+            </select>
+          </label>
+          <label class="control compact">
+            Notify command at
+            <select id="notifyThreshold">
+              <option value="alert">Any alert</option>
+              <option value="breach">Zone breach</option>
+              <option value="unidentified">Unidentified alert</option>
+            </select>
+          </label>
+          <label class="control compact">
+            Closure rule
+            <select id="closureRule">
+              <option value="reviewed">Reviewed + notes</option>
+              <option value="friendly">Friendly match</option>
+              <option value="departed">Departed zone</option>
+            </select>
+          </label>
+          <div class="metric-card">
+            <span>Authority check</span>
+            <strong id="authorityCheck">Pending</strong>
+          </div>
+        </div>
+        <div id="roeDecisionCards" class="roe-decision-cards" aria-label="Rules of engagement decisions"></div>
+        <div class="roe-actions">
+          <button id="notifyCommandBtn" type="button">Record command notification</button>
+          <button id="closeIncidentBtn" type="button">Close selected incident</button>
+          <button id="roeBriefBtn" type="button">Generate ROE brief</button>
+        </div>
+      </section>
+
+      <section class="panel commander-panel">
+        <div class="panel-head">
+          <h2>Phase 15 Mission Commander Dashboard</h2>
+          <span id="commanderStatus">Command --</span>
+        </div>
+        <div class="commander-grid">
+          <div class="metric-card">
+            <span>Mission readiness</span>
+            <strong id="dashboardReadiness">--</strong>
+          </div>
+          <div class="metric-card">
+            <span>Weather impact</span>
+            <strong id="dashboardWeather">--</strong>
+          </div>
+          <div class="metric-card">
+            <span>Operator status</span>
+            <strong id="operatorStatus">--</strong>
+          </div>
+          <div class="metric-card">
+            <span>Incident queue</span>
+            <strong id="incidentQueueCount">0</strong>
+          </div>
+        </div>
+        <div class="commander-layout">
+          <div id="commanderSectorMap" class="commander-sector-map" aria-label="Commander sector map"></div>
+          <div id="commanderPriorities" class="commander-priorities" aria-label="Commander priorities"></div>
+        </div>
+        <div id="incidentQueue" class="incident-queue" aria-label="Incident queue"></div>
+        <div class="commander-actions">
+          <button id="commanderBriefBtn" type="button">Generate commander brief</button>
+          <button id="queueSnapshotBtn" type="button">Capture queue snapshot</button>
+        </div>
+      </section>
+
+      <section id="scenario-cell" class="section-band">
+        <span>Scenario Cell</span>
+        <strong>Mission templates, red-team injects, comms degradation</strong>
+      </section>
+
+      <section class="panel scenario-panel">
+        <div class="panel-head">
+          <h2>Phase 16 Scenario Library</h2>
+          <span id="scenarioStatus">Scenario --</span>
+        </div>
+        <div class="scenario-grid">
+          <label class="control compact">
+            Training scenario
+            <select id="trainingScenario">
+              <option value="base">Base defense</option>
+              <option value="convoy">Convoy overwatch</option>
+              <option value="warehouse">Warehouse perimeter</option>
+              <option value="airport">Airport airside</option>
+              <option value="border">Border sector</option>
+              <option value="critical">Critical infrastructure</option>
+            </select>
+          </label>
+          <div class="metric-card">
+            <span>Scenario tempo</span>
+            <strong id="scenarioTempo">--</strong>
+          </div>
+          <div class="metric-card">
+            <span>Training focus</span>
+            <strong id="scenarioFocus">--</strong>
+          </div>
+          <div class="metric-card">
+            <span>Scenario risk</span>
+            <strong id="scenarioRisk">--</strong>
+          </div>
+        </div>
+        <div id="scenarioCards" class="scenario-cards" aria-label="Scenario library cards"></div>
+        <div id="scenarioObjectives" class="scenario-objectives" aria-label="Scenario objectives"></div>
+        <div class="scenario-actions">
+          <button id="loadScenarioBtn" type="button">Load scenario</button>
+          <button id="scenarioBriefBtn" type="button">Generate scenario brief</button>
+        </div>
+      </section>
+
+      <section class="panel airport-panel">
+        <div class="panel-head">
+          <h2>Airport Defense Mode</h2>
+          <span id="airportDefenseStatus">Airport defense --</span>
+        </div>
+        <div class="airport-grid">
+          <div class="metric-card">
+            <span>Runway readiness</span>
+            <strong id="runwayReadiness">--</strong>
+          </div>
+          <div class="metric-card">
+            <span>Approach corridor</span>
+            <strong id="approachCorridor">--</strong>
+          </div>
+          <div class="metric-card">
+            <span>ATC coordination</span>
+            <strong id="atcCoordination">--</strong>
+          </div>
+          <div class="metric-card">
+            <span>Responder posture</span>
+            <strong id="responderPosture">--</strong>
+          </div>
+        </div>
+        <div class="airport-layout">
+          <div>
+            <h3>Authorized response cell</h3>
+            <div id="responseCell" class="response-cell" aria-label="Authorized airport response cell"></div>
+          </div>
+          <div>
+            <h3>Protection workflow</h3>
+            <div id="airportWorkflow" class="airport-workflow" aria-label="Airport protection workflow"></div>
+          </div>
+        </div>
+        <div class="airport-actions">
+          <button id="airportDefenseBriefBtn" type="button">Generate airport defense brief</button>
+        </div>
+      </section>
+
+      <section class="panel redteam-panel">
+        <div class="panel-head">
+          <h2>Phase 17 Red-Team Simulator</h2>
+          <span id="redTeamStatus">Pattern --</span>
+        </div>
+        <div class="redteam-grid">
+          <label class="control compact">
+            Training pattern
+            <select id="redTeamPattern">
+              <option value="swarm">Swarm behavior</option>
+              <option value="decoys">Decoys and ambiguity</option>
+              <option value="low">Low-altitude approach</option>
+              <option value="weather">Weather masking</option>
+            </select>
+          </label>
+          <label class="control compact">
+            Intensity
+            <input id="redTeamIntensity" type="range" min="1" max="5" step="1" value="2" />
+            <span id="redTeamIntensityValue">2/5</span>
+          </label>
+          <div class="metric-card">
+            <span>Decoy tracks</span>
+            <strong id="decoyTrackCount">0</strong>
+          </div>
+          <div class="metric-card">
+            <span>Training pressure</span>
+            <strong id="redTeamPressure">Low</strong>
+          </div>
+        </div>
+        <div id="redTeamPatternCards" class="redteam-pattern-cards" aria-label="Red-team pattern cards"></div>
+        <div id="redTeamCueList" class="redteam-cue-list" aria-label="Red-team training cues"></div>
+        <div class="redteam-actions">
+          <button id="redTeamInjectBtn" type="button">Inject red-team pattern</button>
+          <button id="redTeamBriefBtn" type="button">Generate red-team brief</button>
+        </div>
+      </section>
+
+      <section class="panel comms-panel">
+        <div class="panel-head">
+          <h2>Phase 18 Comms Degradation</h2>
+          <span id="commsStatus">Comms --</span>
+        </div>
+        <div class="comms-grid">
+          <label class="control compact">
+            Degradation preset
+            <select id="commsPreset">
+              <option value="nominal">Nominal</option>
+              <option value="latency">Delayed link</option>
+              <option value="loss">Packet loss</option>
+              <option value="gps">GPS uncertainty</option>
+              <option value="fatigue">Operator fatigue</option>
+              <option value="blackout">Sensor blackout drill</option>
+              <option value="manual">Manual</option>
+            </select>
+          </label>
+          <label class="control compact">
+            Latency
+            <input id="latencyInput" type="range" min="0" max="2500" step="100" value="100" />
+            <span id="latencyValue">100 ms</span>
+          </label>
+          <label class="control compact">
+            Packet loss
+            <input id="packetLossInput" type="range" min="0" max="60" step="5" value="0" />
+            <span id="packetLossValue">0%</span>
+          </label>
+          <label class="control compact">
+            GPS uncertainty
+            <input id="gpsUncertaintyInput" type="range" min="0" max="80" step="5" value="5" />
+            <span id="gpsUncertaintyValue">5 m</span>
+          </label>
+          <label class="control compact">
+            Fatigue
+            <input id="fatigueInput" type="range" min="0" max="10" step="1" value="1" />
+            <span id="fatigueValue">1/10</span>
+          </label>
+        </div>
+        <div class="comms-status-grid">
+          <div>
+            <span>Operator effect</span>
+            <strong id="commsOperatorEffect">Normal workload.</strong>
+          </div>
+          <div>
+            <span>Sensor effect</span>
+            <strong id="commsSensorEffect">Feeds stable.</strong>
+          </div>
+          <div>
+            <span>Command effect</span>
+            <strong id="commsCommandEffect">Queue timing normal.</strong>
+          </div>
+        </div>
+        <div id="degradedFeedList" class="degraded-feed-list" aria-label="Degraded communications feed list"></div>
+        <div class="comms-actions">
+          <button id="commsDrillBtn" type="button">Start comms drill</button>
+          <button id="commsBriefBtn" type="button">Generate comms brief</button>
+        </div>
+      </section>
+
+      <section id="field-ops" class="section-band">
+        <span>Field Defense</span>
+        <strong>Evidence chain, AI Leader v2, offline defense package</strong>
+      </section>
+
+      <section class="panel evidence-panel">
+        <div class="panel-head">
+          <h2>Phase 19 Audit Evidence Chain</h2>
+          <span id="auditStatus">Audit --</span>
+        </div>
+        <div class="audit-grid">
+          <label class="control compact">
+            Evidence officer
+            <input id="evidenceOfficer" type="text" value="Duty officer" />
+          </label>
+          <div class="metric-card">
+            <span>Evidence records</span>
+            <strong id="evidenceCount">0</strong>
+          </div>
+          <div class="metric-card">
+            <span>Audit score</span>
+            <strong id="auditScore">--</strong>
+          </div>
+          <div class="metric-card">
+            <span>Approvals</span>
+            <strong id="approvalCount">0</strong>
+          </div>
+        </div>
+        <div id="evidenceTimeline" class="evidence-timeline" aria-label="Audit evidence timeline"></div>
+        <div class="evidence-actions">
+          <button id="recordEvidenceBtn" type="button">Record evidence point</button>
+          <button id="evidencePackageBtn" type="button">Generate evidence package</button>
+          <button id="evidenceJsonBtn" type="button">Export evidence JSON</button>
+        </div>
+      </section>
+
+      <section class="panel leader2-panel">
+        <div class="panel-head">
+          <h2>Phase 20 AI Leader v2</h2>
+          <span id="leader2Status">Leader v2 --</span>
+        </div>
+        <div class="leader2-grid">
+          <label class="control compact">
+            Forecast horizon
+            <select id="forecastHorizon">
+              <option value="short">Short / 2 min</option>
+              <option value="medium">Medium / 5 min</option>
+              <option value="long">Long / 10 min</option>
+            </select>
+          </label>
+          <div class="metric-card">
+            <span>Risk forecast</span>
+            <strong id="riskForecast">--</strong>
+          </div>
+          <div class="metric-card">
+            <span>Staffing</span>
+            <strong id="staffingRecommendation">--</strong>
+          </div>
+          <div class="metric-card">
+            <span>Training critique</span>
+            <strong id="trainingCritique">--</strong>
+          </div>
+        </div>
+        <div id="leader2Cards" class="leader2-cards" aria-label="AI Leader v2 cards"></div>
+        <div class="leader2-actions">
+          <button id="leader2BriefBtn" type="button">Generate AI Leader v2 brief</button>
+          <button id="trainingCritiqueBtn" type="button">Generate training critique</button>
+        </div>
+      </section>
+
+      <section class="panel offline-panel">
+        <div class="panel-head">
+          <h2>Phase 21 Offline Rugged Mode</h2>
+          <span id="offlineStatus">Offline --</span>
+        </div>
+        <div class="offline-grid">
+          <label class="control compact">
+            Field mode
+            <select id="fieldMode">
+              <option value="laptop">Field laptop</option>
+              <option value="tablet">Rugged tablet</option>
+              <option value="briefcase">Briefcase kit</option>
+            </select>
+          </label>
+          <div class="metric-card">
+            <span>Local storage</span>
+            <strong id="localStorageStatus">--</strong>
+          </div>
+          <div class="metric-card">
+            <span>Last save</span>
+            <strong id="lastOfflineSave">Never</strong>
+          </div>
+          <div class="metric-card">
+            <span>Package state</span>
+            <strong id="fieldPackageState">Ready</strong>
+          </div>
+        </div>
+        <div id="offlineChecklist" class="offline-checklist" aria-label="Offline rugged checklist"></div>
+        <div class="offline-actions">
+          <button id="saveOfflineBtn" type="button">Save local snapshot</button>
+          <button id="loadOfflineBtn" type="button">Load local snapshot</button>
+          <button id="fieldPackageBtn" type="button">Export field package</button>
+        </div>
+      </section>
+
+      <section class="panel report-panel">
+        <div class="panel-head">
+          <h2>Report Output</h2>
+          <button id="copyReportBtn" type="button">Copy</button>
+        </div>
+        <pre id="incidentReport">No report generated.</pre>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

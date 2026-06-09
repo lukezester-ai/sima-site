@@ -1,7 +1,17 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
-    { "source": "/robots.txt", "destination": "/api/seo?kind=robots" },
-    { "source": "/sitemap.xml", "destination": "/api/seo?kind=sitemap" }
+    {
+      "source": "/robots.txt",
+      "destination": "/api/seo?kind=robots"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/seo?kind=sitemap"
+    },
+    {
+      "source": "/simulator",
+      "destination": "/simulator.html"
+    }
   ]
 }
