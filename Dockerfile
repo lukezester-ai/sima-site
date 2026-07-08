@@ -1,4 +1,4 @@
-# SIMA-site — статика + Node HTTP API (Node 18+)
+# AgriNexus Geo — статика + Node HTTP API (Node 18+)
 FROM node:22-alpine
 
 WORKDIR /app

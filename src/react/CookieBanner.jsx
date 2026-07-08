@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 
-const CONSENT_KEY = "sima-cookie-consent";
+const CONSENT_KEY = "geo-cookie-consent";
 
 function getI18n() {
-  return typeof window !== "undefined" ? window.SIMA_I18N : null;
+  return typeof window !== "undefined" ? window.GEO_I18N : null;
 }
 
 /** Банер за съгласие с бисквитки — преди беше статичен HTML + `initCookieBanner` в `script.js`. */
@@ -20,8 +20,8 @@ export function CookieBanner() {
 
   useEffect(() => {
     const onLang = () => refreshCopy();
-    window.addEventListener("sima-lang-change", onLang);
-    return () => window.removeEventListener("sima-lang-change", onLang);
+    window.addEventListener("geo-lang-change", onLang);
+    return () => window.removeEventListener("geo-lang-change", onLang);
   }, [refreshCopy]);
 
   const i18n = getI18n();

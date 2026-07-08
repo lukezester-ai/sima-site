@@ -62,12 +62,12 @@ const contactFormOpenedAt = form ? Date.now() : 0;
 const authFormOpenedAt = authForm ? Date.now() : 0;
 
 /** Единствен публичен контакт (съвпада с privacy/footer/mailto fallback). */
-const SIMA_CONTACT_EMAIL = "info@agrinexus.eu";
+const GEO_CONTACT_EMAIL = "info@agrinexus.eu";
 
-const historyKey = "sima-field-watch-history";
-const fieldsKey = "sima-portal-fields";
-const knowledgeKey = "sima-knowledge";
-const tokenKey = "sima-api-token";
+const historyKey = "geo-field-watch-history";
+const fieldsKey = "geo-portal-fields";
+const knowledgeKey = "geo-knowledge";
+const tokenKey = "geo-api-token";
 let currentReportText = "";
 let currentReportId = "";
 /** Върхове на границата в WGS84 [lng, lat], добавят се с клик по картата */
@@ -116,7 +116,7 @@ const appState = {
 };
 
 function uiLang() {
-  return window.SIMA_I18N?.getLang?.() || "bg";
+  return window.GEO_I18N?.getLang?.() || "bg";
 }
 
 function localeTag() {
@@ -124,7 +124,7 @@ function localeTag() {
 }
 
 function J() {
-  return window.SIMA_I18N.JS[uiLang()] || window.SIMA_I18N.JS.bg;
+  return window.GEO_I18N.JS[uiLang()] || window.GEO_I18N.JS.bg;
 }
 
 function updateAdvisor() {
@@ -258,7 +258,7 @@ function setAuthMessage(message) {
 
 function updateAuthUi() {
   const loggedIn = Boolean(appState.user);
-  const I = window.SIMA_I18N;
+  const I = window.GEO_I18N;
   if (authStatus) {
     authStatus.textContent = loggedIn ? J().auth_logged_in(appState.user.name) : I.t("auth_local");
   }
@@ -370,7 +370,7 @@ function boundaryToGeoJson() {
   return {
     type: "Feature",
     properties: {
-      source: "SIMA field boundary map",
+      source: "Geo field boundary map",
       coordinateSystem: "EPSG:4326",
     },
     geometry: {
@@ -866,7 +866,7 @@ function renderHistory() {
   const items = loadHistory();
   if (!items.length) {
     historyList.innerHTML = `<p class="empty-history">${escapeHtml(
-      window.SIMA_I18N.t("fw_empty_hist")
+      window.GEO_I18N.t("fw_empty_hist")
     )}</p>`;
     return;
   }
@@ -1279,15 +1279,15 @@ function renderPortalChat() {
   if (!chatMessagesEl) return;
   const Lc = J();
   if (!portalChatMessages.length) {
-    chatMessagesEl.innerHTML = `<p class="sima-chat-empty">${escapeHtml(Lc.chat_empty)}</p>`;
+    chatMessagesEl.innerHTML = `<p class="geo-chat-empty">${escapeHtml(Lc.chat_empty)}</p>`;
     return;
   }
   chatMessagesEl.innerHTML = portalChatMessages
     .map(
       (msg) => `
-    <div class="sima-chat-bubble sima-chat-bubble--${msg.role === "user" ? "user" : "assistant"}">
-      <p class="sima-chat-role">${escapeHtml(msg.role === "user" ? Lc.chat_you : Lc.chat_ai)}</p>
-      <div class="sima-chat-text">${escapeHtml(msg.content).replace(/\n/g, "<br>")}</div>
+    <div class="geo-chat-bubble geo-chat-bubble--${msg.role === "user" ? "user" : "assistant"}">
+      <p class="geo-chat-role">${escapeHtml(msg.role === "user" ? Lc.chat_you : Lc.chat_ai)}</p>
+      <div class="geo-chat-text">${escapeHtml(msg.content).replace(/\n/g, "<br>")}</div>
     </div>`,
     )
     .join("");
@@ -1687,7 +1687,7 @@ function initHeroInsights() {
 
 initHeroInsights();
 
-window.addEventListener("sima-lang-change", () => {
+window.addEventListener("geo-lang-change", () => {
   updateAdvisor();
   updateAuthUi();
   renderHistory();
@@ -1751,7 +1751,7 @@ form?.addEventListener("submit", async (event) => {
     }
     form.reset();
   } catch {
-    window.location.href = `mailto:${SIMA_CONTACT_EMAIL}?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:${GEO_CONTACT_EMAIL}?subject=${subject}&body=${body}`;
   }
 });
 

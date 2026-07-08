@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" role="img" aria-label="SIMA demo field map">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" role="img" aria-label="AgriNexus Geo demo field map">
   <defs>
     <linearGradient id="fieldA" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#5d8a3a" />

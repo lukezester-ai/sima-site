@@ -1,6 +1,6 @@
 # Пример: стартиране зад nginx или директно на порт 3001
 services:
-  sima-site:
+  agrinexus-geo:
     build: .
     restart: unless-stopped
     ports:
@@ -13,9 +13,9 @@ services:
       # LLM / embeddings — виж .env.example
     volumes:
       # Запазване на JSON базата и качени файлове между рестарти
-      - sima-data:/app/data
-      - sima-uploads:/app/uploads
+      - geo-data:/app/data
+      - geo-uploads:/app/uploads
 
 volumes:
-  sima-data:
-  sima-uploads:
+  geo-data:
+  geo-uploads:

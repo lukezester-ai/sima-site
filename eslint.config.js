@@ -14,7 +14,7 @@ export default [
       "public/react-dist/**",
       "scripts/**/*.mjs",
       /** Вложени копия на проекта (архив/клон) — не са част от основния lint обхват. */
-      "sima-site/**",
+      "agrinexus-geo/**",
     ],
   },
   js.configs.recommended,

@@ -41,10 +41,10 @@ if (!process.env.VERCEL) {
 const port = Number(process.env.PORT || 3001);
 const isVercel = Boolean(process.env.VERCEL);
 /** Локално: data/ и uploads/. На Vercel: само /tmp (данните не са постоянни между деплой и скалиране). */
-const dataDir = isVercel ? join("/tmp", "sima-data") : join(root, "data");
-const uploadsDir = isVercel ? join("/tmp", "sima-uploads") : join(root, "uploads");
+const dataDir = isVercel ? join("/tmp", "geo-data") : join(root, "data");
+const uploadsDir = isVercel ? join("/tmp", "geo-uploads") : join(root, "uploads");
 const publicRoot = normalize(join(root, "public"));
-const serverErrorLogPath = isVercel ? join("/tmp", "sima-server-error.log") : join(root, "server-error.log");
+const serverErrorLogPath = isVercel ? join("/tmp", "geo-server-error.log") : join(root, "server-error.log");
 const dbPath = join(dataDir, "db.json");
 const inquiriesPath = join(dataDir, "contact-inquiries.json");
 
@@ -57,8 +57,8 @@ const inquiriesPath = join(dataDir, "contact-inquiries.json");
 const kvRestUrl = (process.env.KV_REST_API_URL || "").replace(/\/+$/, "");
 const kvRestToken = process.env.KV_REST_API_TOKEN || "";
 const kvEnabled = Boolean(kvRestUrl && kvRestToken);
-const KV_DB_KEY = process.env.KV_DB_KEY || "sima:db";
-const KV_INQUIRIES_KEY = process.env.KV_INQUIRIES_KEY || "sima:contact-inquiries";
+const KV_DB_KEY = process.env.KV_DB_KEY || "geo:db";
+const KV_INQUIRIES_KEY = process.env.KV_INQUIRIES_KEY || "geo:contact-inquiries";
 
 /** Изпълнява една Upstash REST команда; връща `result` или хвърля. */
 async function kvCommand(args) {
@@ -96,7 +96,7 @@ async function kvSetJson(key, value) {
   await kvCommand(["SET", key, JSON.stringify(value)]);
 }
 
-/** Единствен публичен контакт за запитвания (AgriNexus / SIMA). */
+/** Единствен публичен контакт за запитвания (AgriNexus Geo). */
 const CONTACT_EMAIL = "info@agrinexus.eu";
 
 const mimeTypes = {
@@ -176,7 +176,7 @@ function collectAllowedOrigins(req) {
   }
   const pub = (process.env.PUBLIC_ORIGIN || "").trim().replace(/\/$/, "").toLowerCase();
   if (pub) set.add(pub);
-  for (const raw of String(process.env.SIMA_ALLOWED_ORIGINS || "").split(",")) {
+  for (const raw of String(process.env.GEO_ALLOWED_ORIGINS || "").split(",")) {
     const p = raw.trim().replace(/\/$/, "").toLowerCase();
     if (p) set.add(p);
   }
@@ -184,7 +184,7 @@ function collectAllowedOrigins(req) {
 }
 
 function trustedBrowserOrigin(req) {
-  if (process.env.SIMA_RELAX_BROWSER_ORIGIN === "1") return true;
+  if (process.env.GEO_RELAX_BROWSER_ORIGIN === "1") return true;
   const allowed = collectAllowedOrigins(req);
   if (allowed.size === 0) return false;
   const origin = String(req.headers.origin || "")
@@ -217,8 +217,8 @@ function antiBotFormMetaError(body) {
     return { status: 400, error: "Презаредете страницата и опитайте отново." };
   }
   const age = Date.now() - opened;
-  const minMs = Math.max(800, Math.min(30_000, Number(process.env.SIMA_FORM_MIN_MS || 1300)));
-  const maxMs = Math.max(60_000, Number(process.env.SIMA_FORM_MAX_MS || 24 * 60 * 60 * 1000));
+  const minMs = Math.max(800, Math.min(30_000, Number(process.env.GEO_FORM_MIN_MS || 1300)));
+  const maxMs = Math.max(60_000, Number(process.env.GEO_FORM_MAX_MS || 24 * 60 * 60 * 1000));
   if (age < minMs) {
     return { status: 400, error: "Моля, изчакайте момент преди изпращане." };
   }
@@ -654,7 +654,7 @@ function buildFieldWatchPrompt(fields, files, knowledge = [], rag = { lines: [],
       : "Няма индексирани RAG откъси за това запитване.";
 
   const prompt = [
-    "Ти си AI агрономичен асистент за SIMA Field Watch модул.",
+    "Ти си AI агрономичен асистент за AgriNexus Geo Field Watch модул.",
     "Дай кратък JSON доклад на български със свойства: state, priority, actions, monitoring.",
     "actions трябва да е масив от 4 конкретни действия.",
     "Използвай вътрешната база знания и RAG откъсите само като помощен контекст; не измисляй факти извън тях.",
@@ -844,7 +844,7 @@ function buildPortalChatSystemPrompt({ fieldsSummary, knowledge = [], rag = { li
       : "Няма RAG откъси за този въпрос.";
 
   return [
-    "Ти си SIMA AI агрономичен асистент в портала на фермера.",
+    "Ти си AgriNexus Geo AI агрономичен асистент в портала на фермера.",
     "Отговаряй на български, кратко и практично — с конкретни следващи стъпки на терен.",
     "Не измисляй нормативни актове или цифри; ако липсва информация, кажи какво да се провери.",
     "Можеш да споменеш Field Watch, полета, задачи и базата знания на потребителя.",
@@ -1162,7 +1162,7 @@ async function fetchKnowledgeFromUrl(url) {
   assertSafeOutboundUrl(url);
   const response = await fetch(url, {
     headers: {
-      "user-agent": "SIMA knowledge fetcher/0.1",
+      "user-agent": "AgriNexus Geo knowledge fetcher/0.1",
     },
   });
   if (!response.ok) throw new Error(`Неуспешно изтегляне: ${response.status}`);
@@ -1393,7 +1393,7 @@ async function handleApi(req, res, pathname) {
   }
 
   if (pathname === "/api/health" && req.method === "GET") {
-    return json(res, 200, { ok: true, service: "sima-site" });
+    return json(res, 200, { ok: true, service: "agrinexus-geo" });
   }
 
   if (pathname === "/api/config" && req.method === "GET") {
@@ -1864,10 +1864,10 @@ if (!isVercel) {
   server.on("error", async (error) => {
     if (error.code === "EADDRINUSE") {
       console.error(
-        `SIMA: порт ${port} вече е зает. Спрете другия процес или задайте PORT=<свободен_порт>.`
+        `AgriNexus Geo: порт ${port} вече е зает. Спрете другия процес или задайте PORT=<свободен_порт>.`
       );
     } else {
-      console.error("SIMA server listen error:", error.message || error);
+      console.error("AgriNexus Geo server listen error:", error.message || error);
     }
     try {
       await appendFile(serverErrorLogPath, `${new Date().toISOString()} ${error.stack}\n`);
@@ -1878,25 +1878,25 @@ if (!isVercel) {
   });
 
   server.listen(port, () => {
-    console.log(`SIMA running on http://localhost:${port}`);
-    console.log(`SIMA storage: ${kvEnabled ? `Vercel KV (key=${KV_DB_KEY})` : `file (${dbPath})`}`);
+    console.log(`AgriNexus Geo running on http://localhost:${port}`);
+    console.log(`AgriNexus Geo storage: ${kvEnabled ? `Vercel KV (key=${KV_DB_KEY})` : `file (${dbPath})`}`);
   });
 
   let shuttingDown = false;
   function gracefulShutdown(signal) {
     if (shuttingDown) return;
     shuttingDown = true;
-    console.log(`SIMA: ${signal} получен — спирам приема на нови връзки…`);
+    console.log(`AgriNexus Geo: ${signal} получен — спирам приема на нови връзки…`);
     server.close((err) => {
       if (err) {
-        console.error("SIMA: грешка при затваряне:", err.message || err);
+        console.error("AgriNexus Geo: грешка при затваряне:", err.message || err);
         process.exit(1);
       }
-      console.log("SIMA: готово, чао.");
+      console.log("AgriNexus Geo: готово, чао.");
       process.exit(0);
     });
     setTimeout(() => {
-      console.warn("SIMA: принудително изключване след 10s.");
+      console.warn("AgriNexus Geo: принудително изключване след 10s.");
       process.exit(1);
     }, 10_000).unref();
   }
@@ -1905,7 +1905,7 @@ if (!isVercel) {
   process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
   process.on("unhandledRejection", (reason) => {
-    console.error("SIMA: unhandledRejection:", reason);
+    console.error("AgriNexus Geo: unhandledRejection:", reason);
   });
 }
 

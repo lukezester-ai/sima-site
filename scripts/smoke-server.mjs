@@ -103,7 +103,7 @@ async function main() {
     await waitForHealth(port, 15_000);
 
     const health = await httpJson(port, "/api/health");
-    if (!health.ok || !health.json || health.json.service !== "sima-site") {
+    if (!health.ok || !health.json || health.json.service !== "agrinexus-geo") {
       throw new Error(`неочакван /api/health: ${health.text}`);
     }
 
@@ -122,7 +122,7 @@ async function main() {
       formOpenedAt: opened,
       name: "smoke",
       email: "smoke-test@example.com",
-      message: "SIMA smoke тест съобщение (поне 8 знака).",
+      message: "AgriNexus Geo smoke тест съобщение (поне 8 знака).",
     });
     const contact = await httpJson(port, "/api/contact", {
       method: "POST",

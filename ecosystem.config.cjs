@@ -1,12 +1,12 @@
 /**
  * PM2: npm install -g pm2
  * Старт: pm2 start ecosystem.config.cjs --env production
- * Пътят cwd е коренът на репото на сървъра (напр. /var/www/SIMA-site).
+ * Пътят cwd е коренът на репото на сървъра (напр. /var/www/agrinexus-geo).
  */
 module.exports = {
   apps: [
     {
-      name: "sima-site",
+      name: "agrinexus-geo",
       script: "server.js",
       cwd: __dirname,
       instances: 1,

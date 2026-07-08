@@ -15,8 +15,8 @@
   --shadow-lift: 0 18px 44px rgba(6, 61, 42, 0.12);
   --inner-shine: inset 0 1px 0 rgba(255, 255, 255, 0.72);
   --inner-shine-strong: inset 0 1px 0 rgba(255, 255, 255, 0.28);
-  /* Само маркерът „SIMA“ — червен, отделен от зелената UI палитра */
-  --sima-brand-red: #b91c2c;
+  /* Само маркерът — червен, отделен от зелената UI палитра */
+  --geo-brand-red: #b91c2c;
   /* LinkedIn brand (екран): основно синьо и hover — виж brand.linkedin.com */
   --linkedin-brand: #0a66c2;
   --linkedin-brand-hover: #004182;
@@ -83,7 +83,7 @@ img {
   color: inherit;
 }
 
-/* Знак (лист) + червен надпис SIMA — един и същи „локъп“ навсякъде */
+/* Знак (лист) + червен надпис — един и същи „локъп“ навсякъде */
 .brand-lockup {
   display: inline-flex;
   align-items: center;
@@ -147,12 +147,12 @@ img {
   width: 18px;
 }
 
-/* Текстово лого SIMA: друг шрифт, удебелено, червено */
+/* Текстово лого: друг шрифт, удебелено, червено */
 .brand-wordmark {
   font-family: "Archivo Black", "Arial Black", "Helvetica Neue", Arial, sans-serif;
   font-weight: 400;
   font-style: normal;
-  color: var(--sima-brand-red);
+  color: var(--geo-brand-red);
   letter-spacing: 0.06em;
   line-height: 1;
   text-transform: uppercase;
@@ -1415,20 +1415,20 @@ h3 {
     0 10px 26px rgba(6, 61, 42, 0.32);
 }
 
-.sima-chat-intro {
+.geo-chat-intro {
   margin: 0 0 14px;
   font-size: 0.92rem;
   line-height: 1.55;
   max-width: 52rem;
 }
 
-.sima-chat {
+.geo-chat {
   display: grid;
   gap: 12px;
   max-width: 52rem;
 }
 
-.sima-chat-messages {
+.geo-chat-messages {
   min-height: 280px;
   max-height: min(52vh, 520px);
   overflow-y: auto;
@@ -1441,13 +1441,13 @@ h3 {
   background: rgba(231, 241, 234, 0.35);
 }
 
-.sima-chat-empty {
+.geo-chat-empty {
   margin: 0;
   color: var(--muted);
   font-size: 0.92rem;
 }
 
-.sima-chat-bubble {
+.geo-chat-bubble {
   max-width: 100%;
   padding: 10px 12px;
   border-radius: 10px;
@@ -1455,17 +1455,17 @@ h3 {
   background: #fff;
 }
 
-.sima-chat-bubble--user {
+.geo-chat-bubble--user {
   margin-left: 12%;
   border-color: rgba(6, 95, 70, 0.25);
   background: rgba(231, 241, 234, 0.85);
 }
 
-.sima-chat-bubble--assistant {
+.geo-chat-bubble--assistant {
   margin-right: 6%;
 }
 
-.sima-chat-role {
+.geo-chat-role {
   margin: 0 0 6px;
   font-size: 0.72rem;
   font-weight: 800;
@@ -1474,7 +1474,7 @@ h3 {
   color: var(--green-800);
 }
 
-.sima-chat-text {
+.geo-chat-text {
   margin: 0;
   font-size: 0.94rem;
   line-height: 1.55;
@@ -1482,14 +1482,14 @@ h3 {
   word-break: break-word;
 }
 
-.sima-chat-form {
+.geo-chat-form {
   display: grid;
   gap: 10px;
   grid-template-columns: 1fr auto;
   align-items: end;
 }
 
-.sima-chat-form textarea {
+.geo-chat-form textarea {
   grid-column: 1 / -1;
   min-height: 88px;
   resize: vertical;
@@ -1502,7 +1502,7 @@ h3 {
   box-sizing: border-box;
 }
 
-.sima-chat-form button {
+.geo-chat-form button {
   border: 0;
   border-radius: 10px;
   color: #fff;
@@ -1514,12 +1514,12 @@ h3 {
   min-height: 46px;
 }
 
-.sima-chat-form button:disabled {
+.geo-chat-form button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
-.sima-chat-status {
+.geo-chat-status {
   margin: 0;
   font-size: 0.84rem;
   min-height: 1.2em;

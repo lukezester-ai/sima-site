@@ -1,4 +1,4 @@
-# SIMA (уеб проект)
+# AgriNexus Geo
 
 Маркетинг лендинг + Field Watch демо + фермерски портал с локален Node сървър и JSON „база“.
 
@@ -24,7 +24,7 @@ npm run seed:db
 
 ## Лого
 
-Изходен вектор: `public/assets/sima-logo.svg`. PNG за сайта:
+Изходен вектор: `public/assets/geo-logo.svg`. PNG за сайта:
 
 ```powershell
 npm run build:logo
@@ -56,7 +56,7 @@ API ключът отива в браузъра (стандартно за clien
 
 ## API за здраве проверки
 
-`GET /api/health` → `{ "ok": true, "service": "sima-site" }`
+`GET /api/health` → `{ "ok": true, "service": "agrinexus-geo" }`
 
 ## Git
 
@@ -64,7 +64,7 @@ API ключът отива в браузъра (стандартно за clien
 
 ## Качване в GitHub
 
-Проектът има **един** remote — `roxsonltd-droid/SIMA-site` (single source of truth).
+Проектът има **един** remote — `roxsonltd-droid/SIMA-site` (single source of truth, pending rename).
 
 ```powershell
 git add -A
@@ -75,7 +75,7 @@ git push
 Първоначална настройка на remote-а (еднократно, ако клонираш отначало):
 
 ```powershell
-git remote add origin https://github.com/roxsonltd-droid/SIMA-site.git
+git remote add origin https://github.com/roxsonltd-droid/agrinexus-geo.git
 ```
 
 За Vercel deploy виж секцията **Вариант C — Vercel** по-долу.
@@ -89,8 +89,8 @@ git remote add origin https://github.com/roxsonltd-droid/SIMA-site.git
 На сървъра (с инсталиран Docker):
 
 ```bash
-git clone https://github.com/roxsonltd-droid/SIMA-site.git
-cd SIMA-site
+git clone https://github.com/roxsonltd-droid/agrinexus-geo.git
+cd agrinexus-geo
 docker compose up -d --build
 ```
 
@@ -99,7 +99,7 @@ docker compose up -d --build
 Празна база от семето (ако искате копие от `db.seed.json` преди първи старт в постоянен volume):
 
 ```bash
-docker compose run --rm sima-site node scripts/copy-seed-db.mjs
+docker compose run --rm agrinexus-geo node scripts/copy-seed-db.mjs
 ```
 
 *(Използвайте `--force` за презапис само ако знаете какво правите.)*
@@ -109,8 +109,8 @@ docker compose run --rm sima-site node scripts/copy-seed-db.mjs
 Нужен е **Node.js 18+** (`node -v`).
 
 ```bash
-git clone https://github.com/roxsonltd-droid/SIMA-site.git
-cd SIMA-site
+git clone https://github.com/roxsonltd-droid/agrinexus-geo.git
+cd agrinexus-geo
 npm ci --omit=dev
 ```
 
@@ -144,11 +144,9 @@ pm2 startup   # показва команда за systemd hook — изпълн
 
 #### systemd (без PM2)
 
-Примерен unit файл: **[deploy/sima-site.service.example](./deploy/sima-site.service.example)** — настройте `User`, `WorkingDirectory` и `Environment` според сървъра, после:
+Примерен unit файл: ~~`deploy/sima-site.service.example`~~ (премахнат). За systemd създайте собствен service файл.
 
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now sima-site
+sudo systemctl enable --now agrinexus-geo
 ```
 
 ### nginx + HTTPS
@@ -161,7 +159,7 @@ sudo systemctl enable --now sima-site
 
 **Важно:** на Vercel няма постоянен локален диск. Без допълнителна настройка `data/db.json` и качените файлове живеят в `/tmp` и **изчезват** при нов deploy или при scaling. За запазване на регистрации/полета/задачи ползвайте **Vercel KV** (виж по-долу).
 
-В проекта в [**Vercel Dashboard**](https://vercel.com/new) импортирайте GitHub repo **`roxsonltd-droid/SIMA-site`**. В **Environment Variables** задайте поне **`PUBLIC_ORIGIN`** (публичен `https://…` без накраен `/`) и при нужда **`PUBLIC_HTTPS=1`**, както и ключовете за LLM/RAG от [.env.example](./.env.example).
+В проекта в [**Vercel Dashboard**](https://vercel.com/new) импортирайте GitHub repo **`roxsonltd-droid/agrinexus-geo`**. В **Environment Variables** задайте поне **`PUBLIC_ORIGIN`** (публичен `https://…` без накраен `/`) и при нужда **`PUBLIC_HTTPS=1`**, както и ключовете за LLM/RAG от [.env.example](./.env.example).
 
 Лимити за изпълнение на функции на безплатния план са къси — тежки LLM заявки може да изискват **Pro** или backend на VPS.
 
@@ -171,15 +169,15 @@ sudo systemctl enable --now sima-site
 
 За да оцеляват потребителите и данните между deploy-и, свържете проекта с Vercel KV:
 
-1. Vercel Dashboard → проект **`sima-site`** → **Storage** → **Create Database** → **KV**.
+1. Vercel Dashboard → проект **`agrinexus-geo`** → **Storage** → **Create Database** → **KV**.
 2. Изберете регион (за България — Frankfurt / EU West).
-3. След създаване чукнете **„Connect Project"** и изберете `sima-site`.
+3. След създаване чукнете **„Connect Project"** и изберете `agrinexus-geo`.
 4. Vercel автоматично добавя в Environment Variables:
    - `KV_REST_API_URL`
    - `KV_REST_API_TOKEN`
    - `KV_REST_API_READ_ONLY_TOKEN` (по желание)
    - `KV_URL` (TCP, не се ползва от сървъра)
-5. **Redeploy** на проекта — при старт логът показва `SIMA storage: Vercel KV (key=sima:db)`.
+5. **Redeploy** на проекта — при старт логът показва `AgriNexus Geo storage: Vercel KV (key=geo:db)`.
 
 След това регистрираните потребители, сесиите, полетата и т.н. се пишат в KV и се пазят между deploy-и. Качените файлове в `uploads/` остават непостоянни (KV не е за бинарни данни — за тях Vercel Blob / S3).
 

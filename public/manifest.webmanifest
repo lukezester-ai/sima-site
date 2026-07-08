@@ -1,7 +1,7 @@
 {
-  "name": "SIMA",
-  "short_name": "SIMA",
-  "description": "SIMA — AI решения за модерно земеделие — Field Watch и фермерски портал.",
+  "name": "AgriNexus Geo",
+  "short_name": "ANG",
+  "description": "AgriNexus Geo — сателитни, дрон и сензорни технологии за земеделие.",
   "id": "/",
   "start_url": "/",
   "scope": "/",

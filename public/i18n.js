@@ -1,15 +1,15 @@
 /**
- * SIMA site UI languages: Bulgarian (default) + English.
- * Preference: localStorage "sima-lang" = "bg" | "en"
+ * AgriNexus Geo site UI languages: Bulgarian (default) + English.
+ * Preference: localStorage "geo-lang" = "bg" | "en"
  */
 (function () {
-  const STORAGE_KEY = "sima-lang";
+  const STORAGE_KEY = "geo-lang";
 
   const STRINGS = {
     bg: {
-      meta_title: "SIMA | AI решения за модерно земеделие",
+      meta_title: "AgriNexus Geo | Сателитни, дрон и сензорни технологии",
       meta_description:
-        "SIMA внедрява AI технологии в земеделието: наблюдение на полета, анализи, автоматизация и управление на стопанства.",
+        "AgriNexus Geo — геопространствени технологии за земеделие: сателитни индекси, дрон мисии, почвени сензори и Field Watch наблюдение.",
       nav_aria: "Основна навигация",
       nav_solutions: "Решения",
       nav_modules: "Модули",
@@ -22,9 +22,8 @@
       nav_scale: "За кого",
       nav_privacy: "Поверителност",
       nav_terms: "Условия",
-      nav_simulator: "Simulator",
-      brand_aria: "SIMA начало",
-      social_aria: "Отваря профила на SIMA в LinkedIn",
+      brand_aria: "ANG начало",
+      social_aria: "Отваря профила на ANG в LinkedIn",
       nav_cta: "Консултация",
       lang_aria: "Език на сайта",
       lang_bg: "БГ",
@@ -32,9 +31,9 @@
       hero_eyebrow: "AI технологии за земеделие с ясен резултат",
       hero_h1: "Свобода, спокойствие и сигурност за всяко стопанство.",
       hero_copy:
-        "SIMA помага на фермери и агрокомпании да разбират по-добре полетата, ресурсите и риска. От наблюдение на посевите до пълно управление на стопанството, изграждаме решения около реалния проблем, а не около готов шаблон.",
+        "ANG помага на фермери и агрокомпании да разбират по-добре полетата, ресурсите и геопространствения риск. От сателитни индекси и дрон мисии до почвени сензори и Field Watch наблюдение.",
       hero_credit_html:
-        '<strong>SIMA</strong> е марка и технологична линия на <strong>AgriNexus</strong> — студиото, което съчетава аграрен контекст, данни и изкуствен интелект в продукти, които носят яснота на терена и спокойствие в управлението.',
+        '<strong>ANG (AgriNexus Geo)</strong> е продукт на <strong>AgriNexus</strong> — студиото, което съчетава аграрен контекст, данни и изкуствен интелект в продукти, които носят яснота на терена и спокойствие в управлението.',
       hero_btn1: "Започнете разговор",
       hero_btn2: "Вижте възможностите",
       hero_visual_aria: "AI контролен панел за земеделие",
@@ -58,7 +57,7 @@
       sol4_h: "Управление на стопанство",
       sol4_p:
         "Единна система за задачи, техника, хора, склад, разходи и отчети, която дава спокойна картина на ежедневието и сезона.",
-      mod_eyebrow: "AI модулите на SIMA",
+      mod_eyebrow: "AI модулите на ANG",
       mod_h2: "Започвате с един ясен проблем и надграждате до цялостна система.",
       mod1_h: "Наблюдение на полета",
       mod1_p: "Карта на посевите, сателитни индекси, зони с риск и ранни сигнали за промяна.",
@@ -75,7 +74,7 @@
       fw_eyebrow: "Field Watch прототип",
       fw_h2: "От данни за полето до първа стратегия за действие.",
       fw_intro:
-        "Тази демо версия показва как ще работи модулът: фермерът описва полето, добавя наличните данни и получава структурирана първа стратегия. В реална система анализът ще се свърже с избран LLM модел, сателитни индекси и проверка от екипа на SIMA.",
+        "Тази демо версия показва как ще работи модулът: фермерът описва полето, добавя наличните данни и получава структурирана първа стратегия. В реална система анализът ще се свърже с избран LLM модел, сателитни индекси и проверка от екипа на ANG.",
       fw_field: "Име на поле / парцел",
       fw_field_ph: "Например: Блок 12 - Север",
       fw_area: "Площ",
@@ -89,7 +88,7 @@
       fw_notes_ph:
         "Например: в северната част има пожълтяване, растежът изостава, последното поливане беше преди 8 дни...",
       fw_submit: "Изготви примерна стратегия",
-      fw_card_tag: "SIMA Field Watch",
+      fw_card_tag: "ANG Field Watch",
       fw_strategy_title: "Първа полева диагностика",
       fw_strategy_placeholder:
         "Попълнете данните вляво и модулът ще покаже примерна стратегия: какво да се провери, кои действия са приоритетни и какво да се наблюдава през следващите дни.",
@@ -118,7 +117,7 @@
       portal_eyebrow: "Моето стопанство",
       portal_h2: "Практичен портал за много фермери, полета и доклади.",
       portal_intro:
-        "Това е първа версия на работното пространство след вход. Всеки фермер ще има собствено стопанство, списък с полета, история на Field Watch анализите и ясна връзка с екипа на SIMA.",
+        "Това е първа версия на работното пространство след вход. Всеки фермер ще има собствено стопанство, списък с полета, история на Field Watch анализите и ясна връзка с екипа на ANG.",
       auth_local: "Локален режим",
       auth_helper: "Влезте, за да пазите данните в backend.",
       auth_logged_helper: "Данните се пазят в backend база.",
@@ -139,7 +138,7 @@
       tab_weather: "Метео",
       tab_knowledge: "Знания",
       tab_chat: "AI чат",
-      tab_team: "SIMA екип",
+      tab_team: "ANG екип",
       chat_eyebrow: "AI асистент",
       chat_h: "Чат за агро въпроси",
       chat_intro:
@@ -186,7 +185,7 @@
       kn_ph_text: "Или поставете ръчно текст, агрономична бележка, наблюдение, правило...",
       kn_rag: "Индексирай за RAG (откъси в семантичното търсене за Field Watch)",
       kn_add: "Добави знание",
-      team_eyebrow: "SIMA екип",
+      team_eyebrow: "ANG екип",
       team_h: "Опашка за преглед",
       promise_eyebrow: "Нашата роля",
       promise_h2: "Разплитаме възела заедно с вас.",
@@ -222,7 +221,7 @@
       scale_eyebrow: "За малки и големи",
       scale_h2: "Решение може да се намери за всеки мащаб.",
       scale_p:
-        "Малкият фермер има нужда от яснота и спестено време. Голямата компания има нужда от контрол, интеграции и управленска картина. SIMA изгражда мост между земята, данните и решенията.",
+        "Малкият фермер има нужда от яснота и спестено време. Голямата компания има нужда от контрол, интеграции и управленска картина. ANG изгражда мост между земята, данните и решенията.",
       scale_s1_t: "Малки стопанства",
       scale_s1_d: "лесен старт, конкретен проблем, бърз ефект",
       scale_s2_t: "Средни ферми",
@@ -232,7 +231,7 @@
       legal_eyebrow: "Правна информация",
       privacy_h2: "Политика за поверителност",
       privacy_p1_html:
-        "<strong>Кой обработва данните.</strong> SIMA. <a href=\"mailto:info@agrinexus.eu\">info@agrinexus.eu</a>",
+        "<strong>Кой обработва данните.</strong> ANG (AgriNexus Geo). <a href=\"mailto:info@agrinexus.eu\">info@agrinexus.eu</a>",
       privacy_p2_html:
         "<strong>Какви данни обработваме.</strong> При контактна форма: име, имейл и текст на съобщението. При регистрация и вход в портала: данни за акаунта, технически журнали и идентификатори за сесия, както и информация, която изрично въвеждате или качвате в профила си.",
       privacy_p3_html:
@@ -243,15 +242,15 @@
         "<strong>Вашите права.</strong> Може да поискате достъп, корекция, изтриване, ограничаване или преносимост според приложимото право, както и да възразите срещу обработка при законово основание. Жалба можете да подадете и пред надзорен орган.",
       terms_h2: "Общи условия за ползване на сайта",
       terms_p1_html:
-        "<strong>Предмет.</strong> Условията уреждат ползването на публичната част на сайта и наличните демонстрационни или клиентски функции на SIMA. С достъп или регистрация приемате тези правила.",
+        "<strong>Предмет.</strong> Условията уреждат ползването на публичната част на сайта и наличните демонстрационни или клиентски функции на ANG (AgriNexus Geo). С достъп или регистрация приемате тези правила.",
       terms_p2_html:
-        "<strong>Съдържание и AI.</strong> Текстове, примери и препоръки от автоматизирани функции са с ориентационен характер. Решения за производство, препарати, техника и правни изисквания взимате вие заедно с вашите експерти; SIMA не носи отговорност за действия, базирани само на демо или генериран изход без професионална проверка.",
+        "<strong>Съдържание и AI.</strong> Текстове, примери и препоръки от автоматизирани функции са с ориентационен характер. Решения за производство, препарати, техника и правни изисквания взимате вие заедно с вашите експерти; ANG (AgriNexus Geo) не носи отговорност за действия, базирани само на демо или генериран изход без професионална проверка.",
       terms_p3_html:
         "<strong>Достъп и промени.</strong> Функции, лимити и наличност могат да се променят без предизвестие. Запазваме си правото да ограничим или прекратим акаунти при злоупотреба, опити за неоторизиран достъп или натоварване, което застрашава стабилността на услугата.",
       terms_p4_html:
         "<strong>Запитвания и договори.</strong> Изпращането на контактна форма е покана за диалог, не поражда задължение за поръчка. Договорни отношения възникват само при отделно писмено или електронно споразумение между страните.",
       terms_p5_html:
-        "<strong>Ограничение на отговорност.</strong> В максималната степен, позволена от закона, SIMA не отговаря за никакви косвени или последващи загуби, произтичащи от ползването или невъзможността за ползване на сайта.",
+        "<strong>Ограничение на отговорност.</strong> В максималната степен, позволена от закона, ANG (AgriNexus Geo) не отговаря за никакви косвени или последващи загуби, произтичащи от ползването или невъзможността за ползване на сайта.",
       contact_h2: "Нека започнем с проблема, който ви тежи най-много.",
       contact_p:
         "Опишете стопанството, процеса или решението, което търсите. Ще върнем ясен първи план: какво може да се измери, какво може да се автоматизира и откъде има смисъл да започнем.",
@@ -264,7 +263,7 @@
       contact_submit: "Изпрати запитване",
       footer_nav_aria: "Връзки в долната част на страницата",
       footer_credit_html:
-        '<strong>SIMA</strong> е бранд и разработка на <strong>AgriNexus</strong> — партньор по иновации в агросектора: от стратегия и архитектура на данни до изпълними AI модули, изградени около реалните сезони, екипи и рискове на стопанството.',
+        '<strong>AgriNexus Geo (ANG)</strong> е собственост на <strong>AgriNexus Ltd</strong>. Връзка: <a href="mailto:info@agrinexus.eu">info@agrinexus.eu</a>',
       cookie_aria: "Известие за бисквитки",
       cookie_text_html:
         'Ползваме само технически необходими механизми за сайта и при нужда локално съхранение в браузъра за демо и портала. С „Разбирам“ потвърждавате запознаването си с <a href="#privacy">политиката за поверителност</a>.',
@@ -295,9 +294,9 @@
       portal_crop_veg: "Зеленчуци",
     },
     en: {
-      meta_title: "SIMA | AI solutions for modern agriculture",
+      meta_title: "AgriNexus Geo | AI solutions for modern agriculture",
       meta_description:
-        "SIMA brings AI to farming: field monitoring, analytics, automation and farm operations.",
+        "AgriNexus Geo brings AI to farming: field monitoring, analytics, automation and farm operations.",
       nav_aria: "Main navigation",
       nav_solutions: "Solutions",
       nav_modules: "Modules",
@@ -311,8 +310,8 @@
       nav_privacy: "Privacy",
       nav_terms: "Terms",
       nav_simulator: "Simulator",
-      brand_aria: "SIMA home",
-      social_aria: "Open SIMA on LinkedIn",
+      brand_aria: "ANG home",
+      social_aria: "Open ANG on LinkedIn",
       nav_cta: "Talk to us",
       lang_aria: "Site language",
       lang_bg: "BG",
@@ -320,9 +319,9 @@
       hero_eyebrow: "AI for agriculture with clear outcomes",
       hero_h1: "Freedom, calm and confidence for every farm.",
       hero_copy:
-        "SIMA helps farmers and agribusinesses understand fields, resources and risk better—from crop monitoring to full farm operations—built around your real problem, not a fixed template.",
+        "ANG helps farmers and agribusinesses understand fields, resources and risk better—from crop monitoring to full farm operations—built around your real problem, not a fixed template.",
       hero_credit_html:
-        '<strong>SIMA</strong> is a brand and product line engineered by <strong>AgriNexus</strong> — where agronomic context meets rigorous data design and AI, shipped as tools teams can trust when margins, weather and timing all speak at once.',
+        '<strong>ANG (AgriNexus Geo)</strong> is a brand and product line engineered by <strong>AgriNexus</strong> — where agronomic context meets rigorous data design and AI, shipped as tools teams can trust when margins, weather and timing all speak at once.',
       hero_btn1: "Start a conversation",
       hero_btn2: "Explore capabilities",
       hero_visual_aria: "AI farm control preview",
@@ -346,7 +345,7 @@
       sol4_h: "Farm management",
       sol4_p:
         "One system for tasks, machinery, people, inventory, costs and reporting—with a calmer daily picture.",
-      mod_eyebrow: "SIMA AI modules",
+      mod_eyebrow: "ANG AI modules",
       mod_h2: "Start from one clear problem and grow into a full system.",
       mod1_h: "Field monitoring",
       mod1_p: "Crop maps, satellite indices, risk zones and early change signals.",
@@ -363,7 +362,7 @@
       fw_eyebrow: "Field Watch prototype",
       fw_h2: "From field data to a first action strategy.",
       fw_intro:
-        "This demo shows the module flow: describe the field, add available data and receive a structured first strategy. In production, analysis connects to your chosen LLM, satellite indices and SIMA team review.",
+        "This demo shows the module flow: describe the field, add available data and receive a structured first strategy. In production, analysis connects to your chosen LLM, satellite indices and ANG team review.",
       fw_field: "Field / parcel name",
       fw_field_ph: "e.g. Block 12 — North",
       fw_area: "Area",
@@ -377,7 +376,7 @@
       fw_notes_ph:
         "e.g. yellowing in the north, growth lagging, last irrigation 8 days ago...",
       fw_submit: "Generate sample strategy",
-      fw_card_tag: "SIMA Field Watch",
+      fw_card_tag: "ANG Field Watch",
       fw_strategy_title: "First field diagnosis",
       fw_strategy_placeholder:
         "Fill in the form on the left to see a sample strategy: what to verify, priority actions and what to watch over the next days.",
@@ -407,7 +406,7 @@
       portal_eyebrow: "My farm",
       portal_h2: "A practical portal for farmers, fields and reports.",
       portal_intro:
-        "First version of the signed-in workspace: each farmer gets a farm profile, field list, Field Watch history and a clear line to the SIMA team.",
+        "First version of the signed-in workspace: each farmer gets a farm profile, field list, Field Watch history and a clear line to the ANG team.",
       auth_local: "Local mode",
       auth_helper: "Sign in to persist data on the backend.",
       auth_logged_helper: "Data is stored in the backend database.",
@@ -428,7 +427,7 @@
       tab_weather: "Weather",
       tab_knowledge: "Knowledge",
       tab_chat: "AI chat",
-      tab_team: "SIMA team",
+      tab_team: "ANG team",
       chat_eyebrow: "AI assistant",
       chat_h: "Agro Q&A chat",
       chat_intro:
@@ -474,7 +473,7 @@
       kn_ph_text: "Or paste text: agronomy notes, observations, rules...",
       kn_rag: "Index for RAG (chunks for Field Watch semantic search)",
       kn_add: "Add knowledge",
-      team_eyebrow: "SIMA team",
+      team_eyebrow: "ANG team",
       team_h: "Review queue",
       promise_eyebrow: "Our role",
       promise_h2: "We untangle it with you.",
@@ -509,7 +508,7 @@
       scale_eyebrow: "Small and large",
       scale_h2: "There is a path for every scale.",
       scale_p:
-        "Small farms need clarity and time saved. Large organisations need control, integrations and executive visibility. SIMA bridges land, data and decisions.",
+        "Small farms need clarity and time saved. Large organisations need control, integrations and executive visibility. ANG bridges land, data and decisions.",
       scale_s1_t: "Small farms",
       scale_s1_d: "easy start, concrete problem, fast impact",
       scale_s2_t: "Mid-size farms",
@@ -519,7 +518,7 @@
       legal_eyebrow: "Legal",
       privacy_h2: "Privacy policy",
       privacy_p1_html:
-        '<strong>Who processes data.</strong> SIMA. <a href="mailto:info@agrinexus.eu">info@agrinexus.eu</a>',
+        '<strong>Who processes data.</strong> ANG (AgriNexus Geo). <a href="mailto:info@agrinexus.eu">info@agrinexus.eu</a>',
       privacy_p2_html:
         "<strong>What we process.</strong> Contact form: name, email and message. Portal sign-in: account data, technical logs and session identifiers, plus information you upload.",
       privacy_p3_html:
@@ -532,13 +531,13 @@
       terms_p1_html:
         "<strong>Scope.</strong> These terms govern public pages and available demo or customer features. By browsing or registering you accept them.",
       terms_p2_html:
-        "<strong>Content and AI.</strong> Automated outputs are indicative. Production, inputs, machinery and legal decisions remain yours with your advisers; SIMA is not liable for actions based solely on demo output without professional verification.",
+        "<strong>Content and AI.</strong> Automated outputs are indicative. Production, inputs, machinery and legal decisions remain yours with your advisers; ANG (AgriNexus Geo) is not liable for actions based solely on demo output without professional verification.",
       terms_p3_html:
         "<strong>Availability.</strong> Features and limits may change. We may restrict accounts for abuse, unauthorised access or instability risks.",
       terms_p4_html:
         "<strong>Enquiries and contracts.</strong> Contact forms invite dialogue only and do not create an order. Contracts require separate written or electronic agreement.",
       terms_p5_html:
-        "<strong>Liability cap.</strong> To the maximum extent allowed by law, SIMA is not liable for indirect or consequential losses from using or being unable to use the site.",
+        "<strong>Liability cap.</strong> To the maximum extent allowed by law, ANG (AgriNexus Geo) is not liable for indirect or consequential losses from using or being unable to use the site.",
       contact_h2: "Let’s start with the problem that weighs on you most.",
       contact_p:
         "Describe your farm, process or outcome you need. We’ll return a clear first plan: what to measure, what to automate and the best place to start.",
@@ -551,7 +550,7 @@
       contact_submit: "Send message",
       footer_nav_aria: "Footer links",
       footer_credit_html:
-        '<strong>SIMA</strong> is a brand and platform initiative developed by <strong>AgriNexus</strong> — an innovation partner for agriculture: strategy, data architecture and AI modules shaped around real seasons, crews and field-level risk—not slide decks.',
+        '<strong>AgriNexus Geo (ANG)</strong> is owned by <strong>AgriNexus Ltd</strong>. Contact: <a href="mailto:info@agrinexus.eu">info@agrinexus.eu</a>',
       cookie_aria: "Cookie notice",
       cookie_text_html:
         'We use only technically necessary site mechanisms and, when needed, local browser storage for demo and portal features. “OK” means you acknowledge our <a href="#privacy">privacy policy</a>.',
@@ -589,7 +588,7 @@
       api_error: "API грешка.",
       chat_empty: "Задайте първия въпрос — асистентът отговаря на български.",
       chat_you: "Вие",
-      chat_ai: "SIMA AI",
+      chat_ai: "ANG AI",
       chat_login_required: "Влезте в акаунт, за да ползвате AI чата.",
       chat_thinking: "Мисля…",
       chat_ready: "Готово",
@@ -703,7 +702,7 @@
       task_reopen: "Върни като отворена",
       queue_wait: "Чака преглед",
       queue_note: (p) =>
-        `${p} Следва SIMA консултант да потвърди анализа и да финализира стратегията.`,
+        `${p} Следва ANG консултант да потвърди анализа и да финализира стратегията.`,
       empty_field_reports: "Още няма доклади за това поле.",
       knowledge_default: "Знание",
       statusLabels: {
@@ -776,7 +775,7 @@
       weather_wind: "Вятър:",
       weather_demo_label: "Демо прогноза",
       weather_default_location: "Пловдив",
-      report_header: "SIMA Field Watch доклад",
+      report_header: "ANG Field Watch доклад",
       report_field: "Поле:",
       report_area: "Площ:",
       report_crop: "Култура:",
@@ -800,7 +799,7 @@
       feedback_kb_text: (rating, helped, outcome, correction) =>
         `Оценка ${rating}/5. Помогна: ${helped ? "да" : "не"}. Резултат: ${outcome}. Корекция: ${correction}`,
       contact_mail_subject: (name) =>
-        `Запитване към SIMA от ${name || "посетител"}`,
+        `Запитване към ANG от ${name || "посетител"}`,
       contact_mail_body: (name, email, message) =>
         `Име: ${name || "—"}\nИмейл: ${email || "—"}\n\nПроблем/цел:\n${message || "—"}`,
       concernStrategies: {},
@@ -809,7 +808,7 @@
       api_error: "API error.",
       chat_empty: "Ask your first question — the assistant replies in your language.",
       chat_you: "You",
-      chat_ai: "SIMA AI",
+      chat_ai: "ANG AI",
       chat_login_required: "Sign in to use AI chat.",
       chat_thinking: "Thinking…",
       chat_ready: "Done",
@@ -921,7 +920,7 @@
       task_reopen: "Reopen",
       queue_wait: "Awaiting review",
       queue_note: (p) =>
-        `${p} A SIMA consultant will confirm the analysis and finalise the strategy.`,
+        `${p} An ANG consultant will confirm the analysis and finalise the strategy.`,
       empty_field_reports: "No reports for this field yet.",
       knowledge_default: "Knowledge",
       statusLabels: {
@@ -994,7 +993,7 @@
       weather_wind: "Wind:",
       weather_demo_label: "Demo forecast",
       weather_default_location: "Plovdiv",
-      report_header: "SIMA Field Watch report",
+      report_header: "ANG Field Watch report",
       report_field: "Field:",
       report_area: "Area:",
       report_crop: "Crop:",
@@ -1018,7 +1017,7 @@
       feedback_kb_text: (rating, helped, outcome, correction) =>
         `Rating ${rating}/5. Helped: ${helped ? "yes" : "no"}. Outcome: ${outcome}. Correction: ${correction}`,
       contact_mail_subject: (name) =>
-        `SIMA inquiry from ${name || "visitor"}`,
+        `ANG inquiry from ${name || "visitor"}`,
       contact_mail_body: (name, email, message) =>
         `Name: ${name || "—"}\nEmail: ${email || "—"}\n\nGoal / issue:\n${message || "—"}`,
       concernStrategies: {},
@@ -1157,7 +1156,7 @@
     const next = normalizeLang(lang);
     localStorage.setItem(STORAGE_KEY, next);
     apply(next);
-    window.dispatchEvent(new CustomEvent("sima-lang-change", { detail: next }));
+    window.dispatchEvent(new CustomEvent("geo-lang-change", { detail: next }));
   }
 
   function t(key) {
@@ -1222,5 +1221,5 @@
     bootI18n();
   }
 
-  window.SIMA_I18N = { STRINGS, JS, getLang, setLang, apply, t };
+  window.GEO_I18N = { STRINGS, JS, getLang, setLang, apply, t };
 })();

@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
-const svgPath = join(root, "public", "assets", "sima-mark.svg");
+const svgPath = join(root, "public", "assets", "geo-mark.svg");
 const outDir = join(root, "public", "icons");
 const theme = "#063d2a";
 
