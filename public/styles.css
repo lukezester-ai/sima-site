@@ -487,32 +487,32 @@ p {
 }
 
 h1 {
-  max-width: 740px;
-  margin-bottom: 24px;
+  max-width: 760px;
+  margin-bottom: 26px;
   color: var(--green-950);
   font-family: var(--heading-font);
-  font-size: clamp(48px, 6.6vw, 88px);
+  font-size: clamp(44px, 5.8vw, 80px);
   font-weight: 800;
-  line-height: 0.96;
-  letter-spacing: -0.025em;
+  line-height: 1.14;
+  letter-spacing: 0.005em;
 }
 
 h2 {
   color: var(--green-950);
   font-family: var(--heading-font);
-  font-size: clamp(34px, 4vw, 58px);
+  font-size: clamp(32px, 3.8vw, 54px);
   font-weight: 800;
-  line-height: 1.02;
-  letter-spacing: -0.02em;
+  line-height: 1.2;
+  letter-spacing: 0.005em;
 }
 
 h3 {
   color: var(--green-950);
   font-family: var(--heading-font);
-  font-size: 23px;
+  font-size: 24px;
   font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
+  line-height: 1.32;
+  letter-spacing: 0.01em;
 }
 
 .hero-copy,
