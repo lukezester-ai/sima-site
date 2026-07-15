@@ -54,11 +54,29 @@ const inquiriesPath = join(dataDir, "contact-inquiries.json");
  * (преживяват deploy и scaling). Иначе пада обратно към локален файл (`data/`),
  * което е удобно за dev. На Vercel без KV данните се пишат в /tmp и изчезват.
  */
-const kvRestUrl = (process.env.KV_REST_API_URL || "").replace(/\/+$/, "");
-const kvRestToken = process.env.KV_REST_API_TOKEN || "";
+const kvRestUrl = (
+  process.env.KV_REST_API_URL ||
+  process.env.UPSTASH_REDIS_REST_URL ||
+  ""
+).replace(/\/+$/, "");
+const kvRestToken =
+  process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || "";
 const kvEnabled = Boolean(kvRestUrl && kvRestToken);
 const KV_DB_KEY = process.env.KV_DB_KEY || "geo:db";
 const KV_INQUIRIES_KEY = process.env.KV_INQUIRIES_KEY || "geo:contact-inquiries";
+
+function storageInfo() {
+  if (kvEnabled) return { mode: "kv", persistent: true, dbKey: KV_DB_KEY };
+  if (isVercel) {
+    return {
+      mode: "ephemeral",
+      persistent: false,
+      warning:
+        "На Vercel без KV/Redis регистрациите и полетата изчезват след deploy или при нов инстанс. Свържете KV в Storage.",
+    };
+  }
+  return { mode: "file", persistent: true, path: dbPath };
+}
 
 /** Изпълнява една Upstash REST команда; връща `result` или хвърля. */
 async function kvCommand(args) {
@@ -420,8 +438,12 @@ async function readDb() {
       const value = await kvGetJson(KV_DB_KEY);
       return normalizeDb(value);
     } catch (err) {
-      console.error("[kv] readDb failed, falling back to file:", err.message);
+      console.error("[kv] readDb failed:", err.message);
+      if (isVercel) throw err;
     }
+  }
+  if (isVercel && !kvEnabled) {
+    return normalizeDb(null);
   }
   try {
     return normalizeDb(JSON.parse(await readFile(dbPath, "utf-8")));
@@ -437,8 +459,14 @@ async function writeDb(db) {
       await kvSetJson(KV_DB_KEY, normalized);
       return;
     } catch (err) {
-      console.error("[kv] writeDb failed, falling back to file:", err.message);
+      console.error("[kv] writeDb failed:", err.message);
+      if (isVercel) throw err;
     }
+  }
+  if (isVercel && !kvEnabled) {
+    const err = new Error("Persistent storage not configured on Vercel");
+    err.code = "STORAGE_EPHEMERAL";
+    throw err;
   }
   await writeFile(dbPath, JSON.stringify(normalized, null, 2), "utf-8");
 }
@@ -699,21 +727,31 @@ function llmConfig() {
   }
 
   const zaiKey = (process.env.ZAI_API_KEY || "").trim();
-  const apiKey = (
-    process.env.LLM_API_KEY ||
-    zaiKey ||
-    process.env.MISTRAL_API_KEY ||
-    process.env.OPENAI_API_KEY ||
-    ""
-  ).trim();
+  const mistralKey = (process.env.MISTRAL_API_KEY || "").trim();
+  const openaiKey = (process.env.OPENAI_API_KEY || "").trim();
+  const llmKey = (process.env.LLM_API_KEY || "").trim();
 
   let provider = explicit;
   if (!provider) {
-    if (zaiKey) provider = "zai";
-    else if (process.env.MISTRAL_API_KEY) provider = "mistral";
-    else if (process.env.OPENAI_API_KEY || process.env.LLM_API_KEY) provider = "openai-compatible";
+    if (mistralKey) provider = "mistral";
+    else if (zaiKey) provider = "zai";
+    else if (openaiKey || llmKey) provider = "openai-compatible";
     else provider = "demo";
   }
+
+  let apiKey = "";
+  if (provider === "mistral") {
+    apiKey = mistralKey || llmKey;
+  } else if (provider === "zai") {
+    apiKey = zaiKey || llmKey;
+  } else if (provider === "openai-compatible") {
+    apiKey = llmKey || openaiKey;
+  } else if (provider === "ollama") {
+    apiKey = llmKey;
+  } else {
+    apiKey = llmKey || mistralKey || zaiKey || openaiKey;
+  }
+  apiKey = apiKey.trim();
 
   let baseUrl = (process.env.LLM_BASE_URL || "").trim();
   if (!baseUrl) {
@@ -1349,7 +1387,16 @@ async function handleApi(req, res, pathname) {
     const token = id("tok");
     db.users.push(user);
     db.sessions.push({ token, userId: user.id, createdAt: new Date().toISOString() });
-    await writeDb(db);
+    try {
+      await writeDb(db);
+    } catch (err) {
+      console.error("[auth] register writeDb:", err.message);
+      const msg =
+        err.code === "STORAGE_EPHEMERAL" || isVercel
+          ? "Акаунтът не може да се запази: липсва постоянна база (Vercel KV). Свържете KV в Storage и redeploy."
+          : "Грешка при запис на акаунта. Опитайте по-късно.";
+      return json(res, 503, { error: msg });
+    }
     return json(res, 201, { token, user: { id: user.id, name: user.name, email: user.email } });
   }
 
@@ -1370,7 +1417,17 @@ async function handleApi(req, res, pathname) {
     }
     const token = id("tok");
     db.sessions.push({ token, userId: user.id, createdAt: new Date().toISOString() });
-    await writeDb(db);
+    try {
+      await writeDb(db);
+    } catch (err) {
+      console.error("[auth] login writeDb:", err.message);
+      return json(res, 503, {
+        error:
+          err.code === "STORAGE_EPHEMERAL" || isVercel
+            ? "Сесията не може да се запази: липсва Vercel KV. Свържете KV в Storage и redeploy."
+            : "Грешка при запис. Опитайте по-късно.",
+      });
+    }
     return json(res, 200, { token, user: { id: user.id, name: user.name, email: user.email } });
   }
 
@@ -1393,7 +1450,7 @@ async function handleApi(req, res, pathname) {
   }
 
   if (pathname === "/api/health" && req.method === "GET") {
-    return json(res, 200, { ok: true, service: "agrinexus-geo" });
+    return json(res, 200, { ok: true, service: "agrinexus-geo", storage: storageInfo() });
   }
 
   if (pathname === "/api/config" && req.method === "GET") {
@@ -1647,7 +1704,7 @@ async function handleApi(req, res, pathname) {
     const config = llmConfig();
     if (config.provider === "demo") {
       return json(res, 503, {
-        error: "AI чатът изисква LLM ключ (напр. ZAI_API_KEY). Вижте LLM-CONFIG.md.",
+        error: "AI чатът изисква LLM ключ (напр. MISTRAL_API_KEY). Вижте LLM-CONFIG.md.",
       });
     }
 
@@ -1879,7 +1936,11 @@ if (!isVercel) {
 
   server.listen(port, () => {
     console.log(`AgriNexus Geo running on http://localhost:${port}`);
-    console.log(`AgriNexus Geo storage: ${kvEnabled ? `Vercel KV (key=${KV_DB_KEY})` : `file (${dbPath})`}`);
+    const st = storageInfo();
+    console.log(
+      `AgriNexus Geo storage: ${st.mode}${st.persistent ? "" : " — NOT PERSISTENT; connect Vercel KV/Redis"}`
+    );
+    if (st.warning) console.warn(`[storage] ${st.warning}`);
   });
 
   let shuttingDown = false;

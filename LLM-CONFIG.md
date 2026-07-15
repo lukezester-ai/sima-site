@@ -12,32 +12,23 @@ Backend-ът вече не е вързан към един AI доставчик
 node server.js
 ```
 
-## Z.AI (glm-5.1) — Field Watch и портален AI чат
+## Mistral AI (препоръка за SIMA — чат + Field Watch + RAG)
 
-След вход в портала: таб **„AI чат“** → `POST /api/chat` (същият LLM ключ).
-
-OpenAI-съвместим endpoint: `POST https://api.z.ai/api/paas/v4/chat/completions`.
-
-В `.env` или `.env.local` в корена на проекта:
-
-```powershell
-$env:LLM_PROVIDER="zai"
-$env:ZAI_API_KEY="your_z_ai_key"
-$env:LLM_MODEL="glm-5.1"
-node server.js
-```
-
-Или само `ZAI_API_KEY` (без `LLM_PROVIDER`) — сървърът избира автоматично доставчик **zai**.
-
-По подразбиране **без** `thinking` (по-бърз JSON доклад). За по-бавен „размисъл“: `LLM_THINKING=1`.
-
-**RAG embeddings:** Z.AI ключът не се ползва за вектори. За семантично търсене задайте отделно напр. `MISTRAL_API_KEY` или `OPENAI_API_KEY` + `EMBEDDING_BASE_URL`, или оставете keyword-only RAG.
-
-## Mistral AI
+След вход в портала: таб **„AI чат“** → `POST /api/chat`.
 
 Официалният API е OpenAI-съвместим за **`/v1/chat/completions`** и **`/v1/embeddings`**.
 
-Достатъчно е да зададете **`MISTRAL_API_KEY`** — ако няма `LLM_PROVIDER`, сървърът автоматично ползва доставчик **`mistral`** с база **`https://api.mistral.ai/v1`** и модел по подразбиране **`mistral-small-latest`**.
+**Vercel (sima-site):** Settings → Environment Variables:
+
+| Променлива | Стойност |
+|------------|----------|
+| `LLM_PROVIDER` | `mistral` |
+| `MISTRAL_API_KEY` | ключ от [console.mistral.ai](https://console.mistral.ai) |
+| `LLM_MODEL` | `mistral-small-latest` (по желание) |
+
+Премахнете или изтрийте `ZAI_API_KEY` / `LLM_PROVIDER=zai`, за да не се ползва Z.AI. След промяната — **Redeploy** на Production.
+
+Локално:
 
 ```powershell
 $env:LLM_PROVIDER="mistral"
@@ -46,9 +37,22 @@ $env:LLM_MODEL="mistral-small-latest"
 node server.js
 ```
 
-За **RAG embeddings** същият ключ се ползва по подразбиране; моделът е **`mistral-embed`**, освен ако не зададете `RAG_EMBEDDING_MODEL`. Можете да отделите само embeddings с `EMBEDDING_API_KEY` / `EMBEDDING_BASE_URL`.
+Ако има само `MISTRAL_API_KEY` (без `LLM_PROVIDER`), сървърът избира автоматично **mistral**. При `LLM_PROVIDER=mistral` се ползва само Mistral ключът (не Z.AI, дори ако `ZAI_API_KEY` още е в `.env`).
 
-JSON режим за отговора: заявката използва `response_format: json_object` (поддържа се от актуалните Mistral chat модели — при грешка пробвайте друг модел или премахнете ограничението в кода).
+За **RAG embeddings** същият ключ; модел **`mistral-embed`** (или `RAG_EMBEDDING_MODEL`).
+
+## Z.AI (glm-5.1) — по избор
+
+OpenAI-съвместим endpoint: `POST https://api.z.ai/api/paas/v4/chat/completions`. Изисква **отделен API баланс** (не GLM Coding Lite).
+
+```powershell
+$env:LLM_PROVIDER="zai"
+$env:ZAI_API_KEY="your_z_ai_key"
+$env:LLM_MODEL="glm-5.1"
+node server.js
+```
+
+**RAG embeddings:** Z.AI не дава embeddings в този стек — за RAG добавете `MISTRAL_API_KEY` или keyword-only режим.
 
 ## OpenAI-compatible доставчик
 
